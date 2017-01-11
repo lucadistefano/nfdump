@@ -297,6 +297,8 @@ typedef struct common_header_s {
 #define NF9_NPROBE_APPL_LATENCY_SEC		57558
 #define NF9_NPROBE_APPL_LATENCY_USEC	57559
 
+#define NF9_NPROBE_l7_APPL_ID			57590
+
 /* prototypes */
 int Init_v9(void);
 

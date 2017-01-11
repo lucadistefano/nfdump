@@ -108,6 +108,7 @@ char yyerror_buff[256];
 %token PPS BPS BPP DURATION NOT 
 %token IPV4 IPV6 BGPNEXTHOP ROUTER VLAN
 %token CLIENT SERVER APP LATENCY SYSID
+%token L7
 %token ASA REASON DENIED XEVENT XIP XNET XPORT INGRESS EGRESS ACL ACE XACE
 %token NAT ADD EVENT VRF NPORT NIP
 %token PBLOCK START END STEP SIZE
@@ -463,6 +464,10 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 			NewBlock(OffsetRouterv6b, MaskIPv6, IPstack[1] , CMP_EQ, FUNC_NONE, NULL ),
 			NewBlock(OffsetRouterv6a, MaskIPv6, IPstack[0] , CMP_EQ, FUNC_NONE, NULL )
 		);
+	}
+
+	| L7 APP comp NUMBER { 	
+		$$.self = NewBlock(OffsetL7ApplID, MaskL7Appl, $4, $3.comp, FUNC_NONE, NULL); 
 	}
 
 	| CLIENT LATENCY comp NUMBER { 	

@@ -367,6 +367,11 @@ void		*p = (void *)input_record;
 				output_record->appl_latency_usec = tpl->appl_latency_usec;
 				p = (void *)tpl->data;
 			} break;
+			case EX_L7_APPL_ID:{
+				tpl_ext_l7_appl_t *tpl = (tpl_ext_l7_appl_t *)p;
+				output_record->l7_appl_id = tpl->l7_appl_id;
+				p = (void *)tpl->data;
+			} break;
 			case EX_RECEIVED: {
 				tpl_ext_27_t *tpl = (tpl_ext_27_t *)p;
 				value64_t v;

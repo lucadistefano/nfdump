@@ -126,6 +126,7 @@ extension_descriptor_t extension_descriptor[] = {
 
 	// nprobe extensions
 	{ EX_LATENCY,			24,	64, 0,		"nprobe latency"},
+	{ EX_L7_APPL_ID,		4,	65, 0,		"nprobe l7 application id"},
 
 	// NAT - Network Event Logging
 	{ EX_NEL_COMMON,		12,	31, 0,		"NEL Common block"},

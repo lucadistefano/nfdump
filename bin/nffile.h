@@ -1179,6 +1179,20 @@ typedef struct tpl_ext_48_s {
 #define EX_NEL_RESERVED_1	49
 
 
+/*
+ * l7 application id
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ * |  0 |                                            (57590)							                                        |
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ */
+#define EX_L7_APPL_ID 50
+typedef struct tpl_ext_l7_appl_s {
+	uint16_t	l7_appl_id;
+	uint16_t	l7_proto_id;
+	uint8_t		data[4];	// points to further data
+} tpl_ext_l7_appl_t;
+
+
 /* 
  * 
  * 
@@ -2059,6 +2073,11 @@ typedef struct master_record_s {
 #   define MaskLatency          0xFFFFFFFFFFFFFFFFLL
 #   define ShiftLatency         0
 
+	uint16_t	l7_appl_id;
+#define L7_BASE_OFFSET     (offsetof(master_record_t, l7_appl_id) >> 3)
+#   define OffsetL7ApplID	L7_BASE_OFFSET
+#	define MaskL7Appl		0x000000000000FFFFLL
+#   define ShiftL7Appl      0
 	// flow received time in ms
 	uint64_t	received;
 

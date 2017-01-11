@@ -210,6 +210,8 @@ static void String_MPLSs(master_record_t *r, char *string);
 
 static void String_Engine(master_record_t *r, char *string);
 
+static void String_L7ApplID(master_record_t *r, char *string);
+
 static void String_ClientLatency(master_record_t *r, char *string);
 
 static void String_ServerLatency(master_record_t *r, char *string);
@@ -383,6 +385,8 @@ static struct format_token_list_s {
 	{ "%sl", 0, "S latency", 	 		 	String_ServerLatency },	// server latency
 	{ "%al", 0, "A latency", 			 	String_AppLatency },	// app latency
 	
+	{ "%ai", 0, "L7 appl", 			 		String_L7ApplID },	// l7 app id
+
 	{ NULL, 0, NULL, NULL }
 };
 
@@ -1044,6 +1048,13 @@ extension_map_t	*extension_map = r->map_ref;
 				_s = data_string + _slen;
 				slen = STRINGSIZE - _slen;
 			break;
+			case EX_L7_APPL_ID: {
+				uint16_t l7;
+				l7 = r->l7_appl_id;
+				snprintf(_s, slen-1,
+				"  l7 appl    =  %6u\n"
+				, l7);
+			} break;
 			case EX_LATENCY: {
 				double f1, f2, f3;
 				f1 = (double)r->client_nw_delay_usec / 1000.0;
@@ -1499,6 +1510,17 @@ master_record_t *r = (master_record_t *)record;
 			slen = STRINGSIZE - _slen;
 		}
 	} 
+
+	{
+		uint16_t l7;
+		l7 = r->l7_appl_id;
+				snprintf(_s, slen-1,
+",%6u", l7);
+
+		_slen = strlen(data_string);
+		_s = data_string + _slen;
+		slen = STRINGSIZE - _slen;
+	}
 
 	{
 		double f1, f2, f3;
@@ -2545,6 +2567,15 @@ static void String_Engine(master_record_t *r, char *string) {
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_Engine
+
+static void String_L7ApplID(master_record_t *r, char *string) {
+uint16_t l7;
+
+	l7 = r->l7_appl_id;
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6u", l7);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_L7ApplID
 
 static void String_ClientLatency(master_record_t *r, char *string) {
 double latency;

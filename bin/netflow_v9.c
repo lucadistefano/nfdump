@@ -356,6 +356,9 @@ static struct v9_element_map_s {
 	{ NF9_NPROBE_SERVER_NW_DELAY_SEC, 	 "NPROBE server lat sec",	_4bytes, _8bytes, move_slatency, nop, EX_LATENCY },
 	{ NF9_NPROBE_APPL_LATENCY_SEC, 	 	 "NPROBE appl lat sec",		_4bytes, _8bytes, move_slatency, nop, EX_LATENCY },
 
+	// nprobe ndpi l7 application id
+	{ NF9_NPROBE_l7_APPL_ID, 	 	 	"NPROBE l7 appl id",	_2bytes, _2bytes, move16, zero16, EX_L7_APPL_ID },
+
 	{0, "NULL",	0, 0}
 };
 
