@@ -1115,6 +1115,7 @@ typedef struct tpl_ext_43_s {
  * nprobe extensions
  */
 
+// TODO change to 32 bit
 /*
  * latency extension 
  * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
@@ -1180,18 +1181,56 @@ typedef struct tpl_ext_48_s {
 
 
 /*
- * l7 application id
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- * |  0 |                                            (57590)							                                        |
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ * l7 proto id
+ * +----+--------------+--------------+--------------+--------------+
+ * |  0 |       L7_PROTO (57590)      |                             |
+ * +----+--------------+--------------+--------------+--------------+
  */
-#define EX_L7_APPL_ID 50
+#define EX_L7_PROTO 50
 typedef struct tpl_ext_l7_appl_s {
-	uint16_t	l7_appl_id;
 	uint16_t	l7_proto_id;
+	uint16_t	l7_parent_proto_id; // TODO not yet used (fill)
 	uint8_t		data[4];	// points to further data
 } tpl_ext_l7_appl_t;
 
+/*
+ * retransmissions
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ * |  0 |                                                           |                                                           |
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ * |  1 |                                                           |                                                           |
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ */
+#define EX_RETRANSMISSION 51
+typedef struct tpl_ext_retransmission_s {
+	uint32_t	retransmitted_in_pkts;
+	uint32_t	retransmitted_out_pkts;
+	uint32_t	retransmitted_in_bytes;
+	uint32_t	retransmitted_out_bytes;
+	uint8_t		data[4];	// points to further data
+} tpl_ext_retransmission_t;
+
+/*
+ * out of order packets
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ * |  0 |                                                           |                                                           |
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ */
+#define EX_OOO 52
+typedef struct tpl_ext_ooo_s {
+	uint32_t	ooo_in_pkts;
+	uint32_t	ooo_out_pkts;
+	uint8_t		data[4];	// points to further data
+} tpl_ext_ooo_t;
+
+#define EX_NPROBE_RESERVED_1 53
+#define EX_NPROBE_RESERVED_2 54
+#define EX_NPROBE_RESERVED_3 55
+#define EX_NPROBE_RESERVED_4 56
+#define EX_NPROBE_RESERVED_5 57
+#define EX_NPROBE_RESERVED_6 58
+#define EX_NPROBE_RESERVED_7 59
+#define EX_NPROBE_RESERVED_8 60
 
 /* 
  * 
@@ -2073,11 +2112,28 @@ typedef struct master_record_s {
 #   define MaskLatency          0xFFFFFFFFFFFFFFFFLL
 #   define ShiftLatency         0
 
-	uint16_t	l7_appl_id;
-#define L7_BASE_OFFSET     (offsetof(master_record_t, l7_appl_id) >> 3)
-#   define OffsetL7ApplID	L7_BASE_OFFSET
-#	define MaskL7Appl		0x000000000000FFFFLL
+	uint64_t	in_retransmission_pkts;
+	uint64_t	out_retransmission_pkts;
+	uint64_t	in_retransmission_bytes;
+	uint64_t	out_retransmission_bytes;
+#define RETRANSMISSION_BASE_OFFSET     (offsetof(master_record_t, in_retransmission_pkts) >> 3)
+#   define OffsetRetransmission	RETRANSMISSION_BASE_OFFSET
+#	define MaskRetransmission		0x000000000000FFFFLL
+#   define ShiftRetransmission      0
+
+	uint64_t	in_ooo_pkts;
+	uint64_t	out_ooo_pkts;
+#define OOO_BASE_OFFSET     (offsetof(master_record_t, in_ooo_pkts) >> 3)
+#   define OffsetOOO	OOO_BASE_OFFSET
+#	define MaskOOO		0x000000000000FFFFLL
+#   define ShiftOOO		0
+
+	uint16_t	l7_proto_id;
+#define L7_BASE_OFFSET     (offsetof(master_record_t, l7_proto_id) >> 3)
+#   define OffsetL7Proto	L7_BASE_OFFSET
+#	define MaskL7Proto		0x000000000000FFFFLL
 #   define ShiftL7Appl      0
+
 	// flow received time in ms
 	uint64_t	received;
 

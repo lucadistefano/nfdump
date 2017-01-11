@@ -125,14 +125,26 @@ extension_descriptor_t extension_descriptor[] = {
 	{ EX_NSEL_RESERVED,		0,	0, 0,		NULL},
 
 	// nprobe extensions
-	{ EX_LATENCY,			24,	64, 0,		"nprobe latency"},
-	{ EX_L7_APPL_ID,		4,	65, 0,		"nprobe l7 application id"},
+	{ EX_LATENCY,			24,	64, 0,		"nProbe latency"},
 
 	// NAT - Network Event Logging
 	{ EX_NEL_COMMON,		12,	31, 0,		"NEL Common block"},
 	{ EX_NEL_GLOBAL_IP_v4,  0,	0, 0,    	"Compat NEL IPv4"},
 	{ EX_PORT_BLOCK_ALLOC, 	8,	32, 0,    	"NAT Port Block Allocation"},
 	{ EX_NEL_RESERVED_1,	0,	0, 0,		NULL},
+
+	// nprobe extensions
+	{ EX_L7_PROTO,			4,	65, 0,		"nProbe Layer 7 protocol id"},
+	{ EX_RETRANSMISSION,	16,	65, 0,		"nProbe Retransmissions"},
+	{ EX_OOO,				8,	65, 0,		"nProbe Out of orders"},
+	{ EX_NPROBE_RESERVED_1,		0,	0, 0,    NULL},
+	{ EX_NPROBE_RESERVED_2,		0,	0, 0,    NULL},
+	{ EX_NPROBE_RESERVED_3,		0,	0, 0,    NULL},
+	{ EX_NPROBE_RESERVED_4,		0,	0, 0,    NULL},
+	{ EX_NPROBE_RESERVED_5,		0,	0, 0,    NULL},
+	{ EX_NPROBE_RESERVED_6,		0,	0, 0,    NULL},
+	{ EX_NPROBE_RESERVED_7,		0,	0, 0,    NULL},
+	{ EX_NPROBE_RESERVED_8,		0,	0, 0,    NULL},
 
 	// last entry
 	{ 0,	0,	0, 0,	NULL }

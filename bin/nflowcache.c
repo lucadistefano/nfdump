@@ -156,7 +156,7 @@ static struct aggregate_info_s {
 	{ "srctos",		{ 1, OffsetTos, 		MaskTos, 	 ShiftTos },   		-1, 0,	"%stos"	},
 	{ "dsttos",		{ 1, OffsetDstTos, 		MaskDstTos,  ShiftDstTos },   	-1, 0,	"%dtos"	},
 
-	{ "l7appl",		{ 8, OffsetL7ApplID, 	MaskL7Appl,	 ShiftL7Appl },      0, 0,	"%aid" },
+	{ "l7proto",	{ 8, OffsetL7Proto, 	MaskL7Proto,	 ShiftL7Appl },      0, 0,	"%l7p" },
 
 	{ NULL,			{ 0, 0, 0, 0}, 0, 0, NULL}
 };

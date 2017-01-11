@@ -210,7 +210,13 @@ static void String_MPLSs(master_record_t *r, char *string);
 
 static void String_Engine(master_record_t *r, char *string);
 
-static void String_L7ApplID(master_record_t *r, char *string);
+static void String_L7ProtoID(master_record_t *r, char *string);
+static void String_Retransmission_InBytes(master_record_t *r, char *string);
+static void String_Retransmission_OutBytes(master_record_t *r, char *string);
+static void String_Retransmission_InPackets(master_record_t *r, char *string);
+static void String_Retransmission_OutPackets(master_record_t *r, char *string);
+static void String_OOO_InPackets(master_record_t *r, char *string);
+static void String_OOO_OutPackets(master_record_t *r, char *string);
 
 static void String_ClientLatency(master_record_t *r, char *string);
 
@@ -380,12 +386,18 @@ static struct format_token_list_s {
 	{ "%pbsize",  0, "Pb-Size", 			  String_PortBlockSize},	// Port block size
 #endif
 
-	// nprobe latency
+	// nprobe
 	{ "%cl", 0, "C Latency", 	 		 	String_ClientLatency },	// client latency
 	{ "%sl", 0, "S latency", 	 		 	String_ServerLatency },	// server latency
 	{ "%al", 0, "A latency", 			 	String_AppLatency },	// app latency
 	
-	{ "%ai", 0, "L7 appl", 			 		String_L7ApplID },	// l7 app id
+	{ "%irbyt", 0, "Retransmission In Bytes", 		String_Retransmission_InBytes },
+	{ "%orbyt", 0, "Retransmission Out Bytes", 		String_Retransmission_OutBytes },
+	{ "%irpkt", 0, "Retransmission In Packets", 		String_Retransmission_InPackets },
+	{ "%orpkt", 0, "Retransmission Out Packets", 		String_Retransmission_OutPackets },
+	{ "%iopkt", 0, "OOO In Packets", 		String_OOO_InPackets },
+	{ "%oopkt", 0, "OOO Out Packets", 		String_OOO_OutPackets },
+	{ "%l7p", 0, "L7 proto", 			 	String_L7ProtoID },		// l7 proto id
 
 	{ NULL, 0, NULL, NULL }
 };
@@ -1048,30 +1060,51 @@ extension_map_t	*extension_map = r->map_ref;
 				_s = data_string + _slen;
 				slen = STRINGSIZE - _slen;
 			break;
-			case EX_L7_APPL_ID: {
-				uint16_t l7;
-				l7 = r->l7_appl_id;
-				snprintf(_s, slen-1,
-				"  l7 appl    =  %6u\n"
-				, l7);
-			} break;
 			case EX_LATENCY: {
-				double f1, f2, f3;
-				f1 = (double)r->client_nw_delay_usec / 1000.0;
-				f2 = (double)r->server_nw_delay_usec / 1000.0;
-				f3 = (double)r->appl_latency_usec / 1000.0;
-
 				snprintf(_s, slen-1,
-"  cli latency  =         %9.3f ms\n"
-"  srv latency  =         %9.3f ms\n"
-"  app latency  =         %9.3f ms\n"
-, f1, f2, f3);
+"  cli latency  =         %6llu ms\n"
+"  srv latency  =         %6llu ms\n"
+"  app latency  =         %6llu ms\n"
+, (long long unsigned)r->client_nw_delay_usec, (long long unsigned)r->server_nw_delay_usec,
+(long long unsigned)r->appl_latency_usec);
+
+//				double f1, f2, f3;
+//				f1 = (double)r->client_nw_delay_usec / 1000.0;
+//				f2 = (double)r->server_nw_delay_usec / 1000.0;
+//				f3 = (double)r->appl_latency_usec / 1000.0;
+//
+//				snprintf(_s, slen-1,
+//"  cli latency  =         %9.3f ms\n"
+//"  srv latency  =         %9.3f ms\n"
+//"  app latency  =         %9.3f ms\n"
+//, f1, f2, f3);
 
 				_slen = strlen(data_string);
 				_s = data_string + _slen;
 				slen = STRINGSIZE - _slen;
 
 			} break;
+			case EX_RETRANSMISSION: {
+				snprintf(_s, slen-1,
+"  in  retr pkt =         %6llu ms\n"
+"  out retr pkt =         %6llu ms\n"
+"  in  retr byt =         %6llu ms\n"
+"  out retr byt =         %6llu ms\n"
+, (long long unsigned)r->in_retransmission_pkts, (long long unsigned)r->out_retransmission_pkts
+, (long long unsigned)r->in_retransmission_bytes, (long long unsigned)r->out_retransmission_bytes);
+			} break;
+			case EX_OOO: {
+				snprintf(_s, slen-1,
+"  in  ooo pkt  =         %6llu ms\n"
+"  out ooo pkt  =         %6llu ms\n"
+, (long long unsigned)r->in_ooo_pkts, (long long unsigned)r->out_ooo_pkts);
+			} break;
+			case EX_L7_PROTO: {
+				snprintf(_s, slen-1,
+"  l7 proto     =  %6u\n"
+				, r->l7_proto_id);
+			} break;
+
 			case EX_ROUTER_ID:
 				snprintf(_s, slen-1,
 "  engine type  =             %5u\n"
@@ -1511,31 +1544,53 @@ master_record_t *r = (master_record_t *)record;
 		}
 	} 
 
+	// EX_LATENCY:
 	{
-		uint16_t l7;
-		l7 = r->l7_appl_id;
-				snprintf(_s, slen-1,
-",%6u", l7);
+		snprintf(_s, slen-1,
+				",%6llu,%6llu,%6llu",
+				(unsigned long long)r->client_nw_delay_usec, (unsigned long long)r->server_nw_delay_usec,
+				(unsigned long long)r->appl_latency_usec);
+//		double f1, f2, f3;
+//		f1 = (double)r->client_nw_delay_usec / 1000.0;
+//		f2 = (double)r->server_nw_delay_usec / 1000.0;
+//		f3 = (double)r->appl_latency_usec / 1000.0;
+//
+//				snprintf(_s, slen-1,
+//",%9.3f,%9.3f,%9.3f", f1, f2, f3);
 
 		_slen = strlen(data_string);
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
 	}
-
+	// EX_RETRANSMISSION:
 	{
-		double f1, f2, f3;
-		f1 = (double)r->client_nw_delay_usec / 1000.0;
-		f2 = (double)r->server_nw_delay_usec / 1000.0;
-		f3 = (double)r->appl_latency_usec / 1000.0;
-
-				snprintf(_s, slen-1,
-",%9.3f,%9.3f,%9.3f", f1, f2, f3);
+		snprintf(_s, slen-1,
+			",%6llu,%6llu,%6llu,%6llu",
+			(unsigned long long)r->in_retransmission_pkts, (unsigned long long)r->out_retransmission_pkts,
+			(unsigned long long)r->in_retransmission_bytes, (unsigned long long)r->out_retransmission_bytes);
 
 		_slen = strlen(data_string);
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
-	} 
+	}
+	// EX_OOO:
+	{
+		snprintf(_s, slen-1,
+				",%6llu,%6llu",
+				(unsigned long long)r->in_ooo_pkts, (unsigned long long)r->out_ooo_pkts);
 
+		_slen = strlen(data_string);
+		_s = data_string + _slen;
+		slen = STRINGSIZE - _slen;
+	}
+	// EX_L7_PROTO:
+	{
+		snprintf(_s, slen-1, ",%6u", r->l7_proto_id);
+
+		_slen = strlen(data_string);
+		_s = data_string + _slen;
+		slen = STRINGSIZE - _slen;
+	}
 
 	// EX_ROUTER_IP_v4:
 	if ( (r->flags & FLAG_IPV6_EXP ) != 0 ) { // IPv6
@@ -2568,41 +2623,106 @@ static void String_Engine(master_record_t *r, char *string) {
 
 } // End of String_Engine
 
-static void String_L7ApplID(master_record_t *r, char *string) {
-uint16_t l7;
-
-	l7 = r->l7_appl_id;
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%6u", l7);
-	string[MAX_STRING_LENGTH-1] = '\0';
-
-} // End of String_L7ApplID
-
+//static void String_ClientLatency(master_record_t *r, char *string) {
+//double latency;
+//
+//	latency = (double)r->client_nw_delay_usec / 1000.0;
+//	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
+//	string[MAX_STRING_LENGTH-1] = '\0';
+//
+//} // End of String_ClientLatency
+//
+//static void String_ServerLatency(master_record_t *r, char *string) {
+//double latency;
+//
+//	latency = (double)r->server_nw_delay_usec / 1000.0;
+//	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
+//	string[MAX_STRING_LENGTH-1] = '\0';
+//
+//} // End of String_ServerLatency
+//
+//static void String_AppLatency(master_record_t *r, char *string) {
+//double latency;
+//
+//	latency = (double)r->appl_latency_usec / 1000.0;
+//	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
+//	string[MAX_STRING_LENGTH-1] = '\0';
+//
+//} // End of String_AppLatency
 static void String_ClientLatency(master_record_t *r, char *string) {
-double latency;
-
-	latency = (double)r->client_nw_delay_usec / 1000.0;
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6llu", (unsigned long long)r->client_nw_delay_usec);
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_ClientLatency
 
 static void String_ServerLatency(master_record_t *r, char *string) {
-double latency;
-
-	latency = (double)r->server_nw_delay_usec / 1000.0;
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6llu", (unsigned long long)r->server_nw_delay_usec);
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_ServerLatency
 
 static void String_AppLatency(master_record_t *r, char *string) {
-double latency;
-
-	latency = (double)r->appl_latency_usec / 1000.0;
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6llu", (unsigned long long)r->appl_latency_usec);
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_AppLatency
+
+static void String_Retransmission_InBytes(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->in_retransmission_bytes, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_Retransmission_InBytes
+static void String_Retransmission_OutBytes(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->out_retransmission_bytes, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_Retransmission_OutBytes
+static void String_Retransmission_InPackets(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->in_retransmission_pkts, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_Retransmission_InPackets
+static void String_Retransmission_OutPackets(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->out_retransmission_pkts, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_Retransmission_OutPackets
+static void String_OOO_InPackets(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->in_ooo_pkts, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_OOO_InPackets
+
+static void String_OOO_OutPackets(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->out_ooo_pkts, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_OOO_OutPackets
+
+static void String_L7ProtoID(master_record_t *r, char *string) {
+	// TODO resolve the mapping proto id <-> proto name
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6u", r->l7_proto_id);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_L7ProtoID
 
 static void String_bps(master_record_t *r, char *string) {
 uint64_t	bps;
