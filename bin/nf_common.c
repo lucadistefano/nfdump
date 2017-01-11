@@ -210,6 +210,12 @@ static void String_MPLSs(master_record_t *r, char *string);
 
 static void String_Engine(master_record_t *r, char *string);
 
+static void String_ClientLatency(master_record_t *r, char *string);
+
+static void String_ServerLatency(master_record_t *r, char *string);
+
+static void String_AppLatency(master_record_t *r, char *string);
+
 static void String_L7ProtoID(master_record_t *r, char *string);
 static void String_Retransmission_InBytes(master_record_t *r, char *string);
 static void String_Retransmission_OutBytes(master_record_t *r, char *string);
@@ -217,12 +223,9 @@ static void String_Retransmission_InPackets(master_record_t *r, char *string);
 static void String_Retransmission_OutPackets(master_record_t *r, char *string);
 static void String_OOO_InPackets(master_record_t *r, char *string);
 static void String_OOO_OutPackets(master_record_t *r, char *string);
-
-static void String_ClientLatency(master_record_t *r, char *string);
-
-static void String_ServerLatency(master_record_t *r, char *string);
-
-static void String_AppLatency(master_record_t *r, char *string);
+static void String_ClientLatencyMs(master_record_t *r, char *string);
+static void String_ServerLatencyMs(master_record_t *r, char *string);
+static void String_AppLatencyMs(master_record_t *r, char *string);
 
 static void String_bps(master_record_t *r, char *string);
 
@@ -386,20 +389,247 @@ static struct format_token_list_s {
 	{ "%pbsize",  0, "Pb-Size", 			  String_PortBlockSize},	// Port block size
 #endif
 
-	// nprobe
-	{ "%cl", 0, "C Latency", 	 		 	String_ClientLatency },	// client latency
-	{ "%sl", 0, "S latency", 	 		 	String_ServerLatency },	// server latency
-	{ "%al", 0, "A latency", 			 	String_AppLatency },	// app latency
-	
-	{ "%irbyt", 0, "Retransmission In Bytes", 		String_Retransmission_InBytes },
-	{ "%orbyt", 0, "Retransmission Out Bytes", 		String_Retransmission_OutBytes },
+	// nprobe latency
+//	{ "%cl", 0, "C Latency", 	 		 	String_ClientLatency },	// client latency
+//	{ "%sl", 0, "S latency", 	 		 	String_ServerLatency },	// server latency
+//	{ "%al", 0, "A latency", 			 	String_AppLatency },	// app latency
+
+	// nprobe	
+	{ "%cl", 	0, "C Latency", 	 		 			String_ClientLatencyMs },	// client latency
+	{ "%sl", 	0, "S latency", 	 		 			String_ServerLatencyMs },	// server latency
+	{ "%al", 	0, "A latency", 			 			String_AppLatencyMs },		// app latency
+	{ "%irbyt", 0, "Retransmission In Bytes", 			String_Retransmission_InBytes },
+	{ "%orbyt", 0, "Retransmission Out Bytes", 			String_Retransmission_OutBytes },
 	{ "%irpkt", 0, "Retransmission In Packets", 		String_Retransmission_InPackets },
 	{ "%orpkt", 0, "Retransmission Out Packets", 		String_Retransmission_OutPackets },
-	{ "%iopkt", 0, "OOO In Packets", 		String_OOO_InPackets },
-	{ "%oopkt", 0, "OOO Out Packets", 		String_OOO_OutPackets },
-	{ "%l7p", 0, "L7 proto", 			 	String_L7ProtoID },		// l7 proto id
+	{ "%iopkt", 0, "OOO In Packets", 					String_OOO_InPackets },
+	{ "%oopkt", 0, "OOO Out Packets", 					String_OOO_OutPackets },
+	{ "%l7p",	0, "L7 proto", 			 				String_L7ProtoID },			// l7 proto id
 
 	{ NULL, 0, NULL, NULL }
+};
+
+
+#define NumL7Protos	216
+#define MAX_L7PROTO_STR 30
+// find \[(.+)\] (.*) subs "$2",  // $1
+char l7protolist[NumL7Protos][MAX_L7PROTO_STR] = {
+	"Unknown",  //   0
+	"FTP_CONTROL",  //   1
+	"POP3",  //   2
+	"SMTP",  //   3
+	"IMAP",  //   4
+	"DNS",  //   5
+	"IPP",  //   6
+	"HTTP",  //   7
+	"MDNS",  //   8
+	"NTP",  //   9
+	"NetBIOS",  //  10
+	"NFS",  //  11
+	"SSDP",  //  12
+	"BGP",  //  13
+	"SNMP",  //  14
+	"XDMCP",  //  15
+	"SMB",  //  16
+	"Syslog",  //  17
+	"DHCP",  //  18
+	"PostgreSQL",  //  19
+	"MySQL",  //  20
+	"TDS",  //  21
+	"Direct_Download_Link",  //  22
+	"POPS",  //  23
+	"AppleJuice",  //  24
+	"DirectConnect",  //  25
+	"Socrates",  //  26
+	"COAP",  //  27
+	"VMware",  //  28
+	"SMTPS",  //  29
+	"Filetopia",  //  30
+	"iMESH",  //  31
+	"Kontiki",  //  32
+	"OpenFT",  //  33
+	"FastTrack",  //  34
+	"Gnutella",  //  35
+	"eDonkey",  //  36
+	"BitTorrent",  //  37
+	"EPP",  //  38
+	"AVI",  //  39
+	"Flash",  //  40
+	"OggVorbis",  //  41
+	"MPEG",  //  42
+	"QuickTime",  //  43
+	"RealMedia",  //  44
+	"WindowsMedia",  //  45
+	"MMS",  //  46
+	"Xbox",  //  47
+	"QQ",  //  48
+	"Move",  //  49
+	"RTSP",  //  50
+	"IMAPS",  //  51
+	"IceCast",  //  52
+	"PPLive",  //  53
+	"PPStream",  //  54
+	"Zattoo",  //  55
+	"ShoutCast",  //  56
+	"Sopcast",  //  57
+	"Tvants",  //  58
+	"TVUplayer",  //  59
+	"HTTPDownload",  //  60
+	"QQLive",  //  61
+	"Thunder",  //  62
+	"Soulseek",  //  63
+	"SSL_No_Cert",  //  64
+	"IRC",  //  65
+	"Ayiya",  //  66
+	"Unencryped_Jabber",  //  67
+	"MSN",  //  68
+	"Oscar",  //  69
+	"Yahoo",  //  70
+	"BattleField",  //  71
+	"Quake",  //  72
+	"VRRP",  //  73
+	"Steam",  //  74
+	"HalfLife2",  //  75
+	"WorldOfWarcraft",  //  76
+	"Telnet",  //  77
+	"STUN",  //  78
+	"IPsec",  //  79
+	"GRE",  //  80
+	"ICMP",  //  81
+	"IGMP",  //  82
+	"EGP",  //  83
+	"SCTP",  //  84
+	"OSPF",  //  85
+	"IP_in_IP",  //  86
+	"RTP",  //  87
+	"RDP",  //  88
+	"VNC",  //  89
+	"PcAnywhere",  //  90
+	"SSL",  //  91
+	"SSH",  //  92
+	"Usenet",  //  93
+	"MGCP",  //  94
+	"IAX",  //  95
+	"TFTP",  //  96
+	"AFP",  //  97
+	"Stealthnet",  //  98
+	"Aimini",  //  99
+	"SIP",  // 100
+	"TruPhone",  // 101
+	"ICMPV6",  // 102
+	"DHCPV6",  // 103
+	"Armagetron",  // 104
+	"Crossfire",  // 105
+	"Dofus",  // 106
+	"Fiesta",  // 107
+	"Florensia",  // 108
+	"Guildwars",  // 109
+	"HTTP_Application_ActiveSync",  // 110
+	"Kerberos",  // 111
+	"LDAP",  // 112
+	"MapleStory",  // 113
+	"MsSQL",  // 114
+	"PPTP",  // 115
+	"Warcraft3",  // 116
+	"WorldOfKungFu",  // 117
+	"Meebo",  // 118
+	"Facebook",  // 119
+	"Twitter",  // 120
+	"Dropbox",  // 121
+	"GMail",  // 122
+	"GoogleMaps",  // 123
+	"YouTube",  // 124
+	"Skype",  // 125
+	"Google",  // 126
+	"DCE_RPC",  // 127
+	"NetFlow",  // 128
+	"sFlow",  // 129
+	"HTTP_Connect",  // 130
+	"HTTP_Proxy",  // 131
+	"Citrix",  // 132
+	"NetFlix",  // 133
+	"LastFM",  // 134
+	"Waze",  // 135
+	"SkyFile_PrePaid",  // 136
+	"SkyFile_Rudics",  // 137
+	"SkyFile_PostPaid",  // 138
+	"Citrix_Online",  // 139
+	"Apple",  // 140
+	"Webex",  // 141
+	"WhatsApp",  // 142
+	"AppleiCloud",  // 143
+	"Viber",  // 144
+	"AppleiTunes",  // 145
+	"Radius",  // 146
+	"WindowsUpdate",  // 147
+	"TeamViewer",  // 148
+	"Tuenti",  // 149
+	"LotusNotes",  // 150
+	"SAP",  // 151
+	"GTP",  // 152
+	"UPnP",  // 153
+	"LLMNR",  // 154
+	"RemoteScan",  // 155
+	"Spotify",  // 156
+	"WebM",  // 157
+	"H323",  // 158
+	"OpenVPN",  // 159
+	"NOE",  // 160
+	"CiscoVPN",  // 161
+	"TeamSpeak",  // 162
+	"Tor",  // 163
+	"CiscoSkinny",  // 164
+	"RTCP",  // 165
+	"RSYNC",  // 166
+	"Oracle",  // 167
+	"Corba",  // 168
+	"UbuntuONE",  // 169
+	"Whois-DAS",  // 170
+	"Collectd",  // 171
+	"SOCKS",  // 172
+	"Lync",  // 173
+	"RTMP",  // 174
+	"FTP_DATA",  // 175
+	"Wikipedia",  // 176
+	"ZeroMQ",  // 177
+	"Amazon",  // 178
+	"eBay",  // 179
+	"CNN",  // 180
+	"Megaco",  // 181
+	"Redis",  // 182
+	"Pando_Media_Booster",  // 183
+	"VHUA",  // 184
+	"Telegram",  // 185
+	"Vevo",  // 186
+	"Pandora",  // 187
+	"QUIC",  // 188
+	"WhatsAppVoice",  // 189
+	"EAQ",  // 190
+	"Git",  // 191
+	"DRDA",  // 192
+	"KakaoTalk",  // 193
+	"KakaoTalk_Voice",  // 194
+	"Twitch",  // 195
+	"QuickPlay",  // 196
+	"OpenDNS",  // 197
+	"MPEG_TS",  // 198
+	"Snapchat",  // 199
+	"Deezer",  // 200
+	"Instagram",  // 201
+	"Microsoft",  // 202
+	"HotspotShield",  // 203
+	"OCS",  // 204
+	"Office365",  // 205
+	"Cloudflare",  // 206
+	"MS_OneDrive",  // 207
+	"MQTT",  // 208
+	"RX",  // 209
+	"Weibo",  // 210
+	"Starcraft",  // 211
+	"Teredo",  // 212
+	"HEP",  // 213
+	"UBNTAC2",  // 214
+	"GoogleHangout"  // 215
 };
 
 /* each of the tokens above must not generate output strings larger than this */
@@ -629,6 +859,16 @@ void Proto_string(uint8_t protonum, char *protostr) {
 		snprintf(protostr,16,"%-5i", protonum );
 	} else {
 		strncpy(protostr, protolist[protonum], 16);
+	}
+
+} // End of Proto_string
+
+static void L7Proto_string(uint8_t protonum, char *protostr) {
+
+	if ( protonum >= NumL7Protos) {
+		snprintf(protostr, 16, "%-4i", protonum );
+	} else {
+		strncpy(protostr, l7protolist[protonum], 16);
 	}
 
 } // End of Proto_string
@@ -1061,30 +1301,32 @@ extension_map_t	*extension_map = r->map_ref;
 				slen = STRINGSIZE - _slen;
 			break;
 			case EX_LATENCY: {
-				snprintf(_s, slen-1,
-"  cli latency  =         %6llu ms\n"
-"  srv latency  =         %6llu ms\n"
-"  app latency  =         %6llu ms\n"
-, (long long unsigned)r->client_nw_delay_usec, (long long unsigned)r->server_nw_delay_usec,
-(long long unsigned)r->appl_latency_usec);
+				double f1, f2, f3;
+				f1 = (double)r->client_nw_delay_usec / 1000.0;
+				f2 = (double)r->server_nw_delay_usec / 1000.0;
+				f3 = (double)r->appl_latency_usec / 1000.0;
 
-//				double f1, f2, f3;
-//				f1 = (double)r->client_nw_delay_usec / 1000.0;
-//				f2 = (double)r->server_nw_delay_usec / 1000.0;
-//				f3 = (double)r->appl_latency_usec / 1000.0;
-//
-//				snprintf(_s, slen-1,
-//"  cli latency  =         %9.3f ms\n"
-//"  srv latency  =         %9.3f ms\n"
-//"  app latency  =         %9.3f ms\n"
-//, f1, f2, f3);
+				snprintf(_s, slen-1,
+"  cli latency  =         %9.3f ms\n"
+"  srv latency  =         %9.3f ms\n"
+"  app latency  =         %9.3f ms\n"
+, f1, f2, f3);
 
 				_slen = strlen(data_string);
 				_s = data_string + _slen;
 				slen = STRINGSIZE - _slen;
 
 			} break;
-			case EX_RETRANSMISSION: {
+			
+			case EX_NP_LATENCY: {
+				snprintf(_s, slen-1,
+"  cli latency  =         %6llu ms\n"
+"  srv latency  =         %6llu ms\n"
+"  app latency  =         %6llu ms\n"
+, (long long unsigned)r->client_nw_delay_usec, (long long unsigned)r->server_nw_delay_usec,
+(long long unsigned)r->appl_latency_usec);
+			} break;
+			case EX_NP_RETRANSMISSION: {
 				snprintf(_s, slen-1,
 "  in  retr pkt =         %6llu ms\n"
 "  out retr pkt =         %6llu ms\n"
@@ -1093,13 +1335,13 @@ extension_map_t	*extension_map = r->map_ref;
 , (long long unsigned)r->in_retransmission_pkts, (long long unsigned)r->out_retransmission_pkts
 , (long long unsigned)r->in_retransmission_bytes, (long long unsigned)r->out_retransmission_bytes);
 			} break;
-			case EX_OOO: {
+			case EX_NP_OOO: {
 				snprintf(_s, slen-1,
 "  in  ooo pkt  =         %6llu ms\n"
 "  out ooo pkt  =         %6llu ms\n"
 , (long long unsigned)r->in_ooo_pkts, (long long unsigned)r->out_ooo_pkts);
 			} break;
-			case EX_L7_PROTO: {
+			case EX_NP_L7_PROTO: {
 				snprintf(_s, slen-1,
 "  l7 proto     =  %6u\n"
 				, r->l7_proto_id);
@@ -1544,25 +1786,32 @@ master_record_t *r = (master_record_t *)record;
 		}
 	} 
 
-	// EX_LATENCY:
+	{
+		double f1, f2, f3;
+		f1 = (double)r->client_nw_delay_usec / 1000.0;
+		f2 = (double)r->server_nw_delay_usec / 1000.0;
+		f3 = (double)r->appl_latency_usec / 1000.0;
+
+				snprintf(_s, slen-1,
+",%9.3f,%9.3f,%9.3f", f1, f2, f3);
+
+		_slen = strlen(data_string);
+		_s = data_string + _slen;
+		slen = STRINGSIZE - _slen;
+	} 
+	
+	// EX_NP_LATENCY:
 	{
 		snprintf(_s, slen-1,
 				",%6llu,%6llu,%6llu",
-				(unsigned long long)r->client_nw_delay_usec, (unsigned long long)r->server_nw_delay_usec,
-				(unsigned long long)r->appl_latency_usec);
-//		double f1, f2, f3;
-//		f1 = (double)r->client_nw_delay_usec / 1000.0;
-//		f2 = (double)r->server_nw_delay_usec / 1000.0;
-//		f3 = (double)r->appl_latency_usec / 1000.0;
-//
-//				snprintf(_s, slen-1,
-//",%9.3f,%9.3f,%9.3f", f1, f2, f3);
+				(unsigned long long)r->client_nw_delay_msec, (unsigned long long)r->server_nw_delay_msec,
+				(unsigned long long)r->appl_latency_msec);
 
 		_slen = strlen(data_string);
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
 	}
-	// EX_RETRANSMISSION:
+	// EX_NP_RETRANSMISSION:
 	{
 		snprintf(_s, slen-1,
 			",%6llu,%6llu,%6llu,%6llu",
@@ -1573,7 +1822,7 @@ master_record_t *r = (master_record_t *)record;
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
 	}
-	// EX_OOO:
+	// EX_NP_OOO:
 	{
 		snprintf(_s, slen-1,
 				",%6llu,%6llu",
@@ -1583,7 +1832,7 @@ master_record_t *r = (master_record_t *)record;
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
 	}
-	// EX_L7_PROTO:
+	// EX_NP_L7_PROTO:
 	{
 		snprintf(_s, slen-1, ",%6u", r->l7_proto_id);
 
@@ -2623,46 +2872,47 @@ static void String_Engine(master_record_t *r, char *string) {
 
 } // End of String_Engine
 
-//static void String_ClientLatency(master_record_t *r, char *string) {
-//double latency;
-//
-//	latency = (double)r->client_nw_delay_usec / 1000.0;
-//	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
-//	string[MAX_STRING_LENGTH-1] = '\0';
-//
-//} // End of String_ClientLatency
-//
-//static void String_ServerLatency(master_record_t *r, char *string) {
-//double latency;
-//
-//	latency = (double)r->server_nw_delay_usec / 1000.0;
-//	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
-//	string[MAX_STRING_LENGTH-1] = '\0';
-//
-//} // End of String_ServerLatency
-//
-//static void String_AppLatency(master_record_t *r, char *string) {
-//double latency;
-//
-//	latency = (double)r->appl_latency_usec / 1000.0;
-//	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
-//	string[MAX_STRING_LENGTH-1] = '\0';
-//
-//} // End of String_AppLatency
 static void String_ClientLatency(master_record_t *r, char *string) {
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%6llu", (unsigned long long)r->client_nw_delay_usec);
+double latency;
+
+	latency = (double)r->client_nw_delay_usec / 1000.0;
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_ClientLatency
 
 static void String_ServerLatency(master_record_t *r, char *string) {
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%6llu", (unsigned long long)r->server_nw_delay_usec);
+double latency;
+
+	latency = (double)r->server_nw_delay_usec / 1000.0;
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_ServerLatency
 
 static void String_AppLatency(master_record_t *r, char *string) {
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%6llu", (unsigned long long)r->appl_latency_usec);
+double latency;
+
+	latency = (double)r->appl_latency_usec / 1000.0;
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%9.3f", latency);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_AppLatency
+
+static void String_ClientLatencyMs(master_record_t *r, char *string) {
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6lu", r->client_nw_delay_msec);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_ClientLatency
+
+static void String_ServerLatencyMs(master_record_t *r, char *string) {
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6lu", r->server_nw_delay_msec);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_ServerLatency
+
+static void String_AppLatencyMs(master_record_t *r, char *string) {
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6lu", r->appl_latency_msec);
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_AppLatency
@@ -2718,8 +2968,11 @@ static void String_OOO_OutPackets(master_record_t *r, char *string) {
 } // End of String_OOO_OutPackets
 
 static void String_L7ProtoID(master_record_t *r, char *string) {
-	// TODO resolve the mapping proto id <-> proto name
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%6u", r->l7_proto_id);
+	// TODO resolve otf the mapping proto id <-> proto name
+	char s[16]; //	char s[MAX_L7PROTO_STR];
+	L7Proto_string(r->l7_proto_id, s);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%s", s);
+//	snprintf(string, MAX_STRING_LENGTH-1 ,"%6u", r->l7_proto_id);
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_L7ProtoID

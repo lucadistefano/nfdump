@@ -282,6 +282,7 @@ struct StatParameter_s {
 	{ "l7p",	 "L7 Proto",
 		{ {0, OffsetL7Proto, MaskL7Proto, 0}, {0,0,0,0} },
 			1, IS_NUMBER },
+
 // TODO readd latencies and retr and ooo?
 //	{ "cl",	 "Client Latency",
 //		{ {0, OffsetClientLatency, MaskLatency, 0}, {0,0,0,0} },

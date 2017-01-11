@@ -360,7 +360,6 @@ void		*p = (void *)input_record;
 				output_record->bgpPrevAdjacentAS = tpl->bgpPrevAdjacentAS;
 				p = (void *)tpl->data;
 			} break;
-
 			case EX_LATENCY: {
 				tpl_ext_latency_t *tpl = (tpl_ext_latency_t *)p;
 				output_record->client_nw_delay_usec = tpl->client_nw_delay_usec;
@@ -368,7 +367,15 @@ void		*p = (void *)input_record;
 				output_record->appl_latency_usec = tpl->appl_latency_usec;
 				p = (void *)tpl->data;
 			} break;
-			case EX_RETRANSMISSION:{
+			
+			case EX_NP_LATENCY: {
+				tpl_ext_latencyms_t *tpl = (tpl_ext_latencyms_t *)p;
+				output_record->client_nw_delay_msec = tpl->client_nw_delay_msec;
+				output_record->server_nw_delay_msec = tpl->server_nw_delay_msec;
+				output_record->appl_latency_msec = tpl->appl_latency_msec;
+				p = (void *)tpl->data;
+			} break;
+			case EX_NP_RETRANSMISSION:{
 				tpl_ext_retransmission_t *tpl = (tpl_ext_retransmission_t *)p;
 				output_record->in_retransmission_bytes = tpl->retransmitted_in_bytes;
 				output_record->in_retransmission_pkts = tpl->retransmitted_in_pkts;
@@ -376,13 +383,13 @@ void		*p = (void *)input_record;
 				output_record->out_retransmission_pkts = tpl->retransmitted_out_pkts;
 				p = (void *)tpl->data;
 			} break;
-			case EX_OOO:{
+			case EX_NP_OOO:{
 				tpl_ext_ooo_t *tpl = (tpl_ext_ooo_t *)p;
 				output_record->in_ooo_pkts = tpl->ooo_in_pkts;
 				output_record->out_ooo_pkts = tpl->ooo_out_pkts;
 				p = (void *)tpl->data;
 			} break;
-			case EX_L7_PROTO:{
+			case EX_NP_L7_PROTO:{
 				tpl_ext_l7_appl_t *tpl = (tpl_ext_l7_appl_t *)p;
 				output_record->l7_proto_id = tpl->l7_proto_id;
 				p = (void *)tpl->data;
