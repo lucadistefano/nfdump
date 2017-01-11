@@ -196,6 +196,8 @@ extern generic_exporter_t **exporter_list;
 
 #define FORMAT_nel "%ts %nevt %pr %sap -> %dap %nsap -> %ndap"
 
+#define FORMAT_nprobe "%ts %td %pr %sap -> %dap %flg %tos %pkt %byt %fl %l7p %cl %sl %al %irpkt %orpkt %iopkt %oopkt"
+
 #ifdef NSEL
 #	define DefaultMode "nsel"
 #else 
@@ -240,6 +242,7 @@ printmap_t printmap[] = {
 #endif
 
 // add your formats here
+	{ "nprobe", 	format_special,      		FORMAT_nprobe 	},
 
 // This is always the last line
 	{ NULL,			NULL,                       NULL			}

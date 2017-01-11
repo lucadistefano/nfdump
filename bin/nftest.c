@@ -990,9 +990,22 @@ void *p;
 		flow_record.mpls_label[i-1] = 0x10;	// init to some value
 	}
 
-	flow_record.client_nw_delay_usec = 11;
-	flow_record.server_nw_delay_usec = 22;
-	flow_record.appl_latency_usec	 = 33;
+//	flow_record.client_nw_delay_usec = 11;
+//	flow_record.server_nw_delay_usec = 22;
+//	flow_record.appl_latency_usec	 = 33;
+//
+//	ret = check_filter_block("client latency 11", &flow_record, 1);
+//	ret = check_filter_block("server latency 22", &flow_record, 1);
+//	ret = check_filter_block("app latency 33", &flow_record, 1);
+//	ret = check_filter_block("client latency 12", &flow_record, 0);
+//	ret = check_filter_block("server latency 23", &flow_record, 0);
+//	ret = check_filter_block("app latency 34", &flow_record, 0);
+//	ret = check_filter_block("client latency < 11", &flow_record, 0);
+//	ret = check_filter_block("client latency > 11", &flow_record, 0);
+
+	flow_record.client_nw_delay_msec = 11;
+	flow_record.server_nw_delay_msec = 22;
+	flow_record.appl_latency_msec	 = 33;
 
 	ret = check_filter_block("client latency 11", &flow_record, 1);
 	ret = check_filter_block("server latency 22", &flow_record, 1);
@@ -1002,6 +1015,37 @@ void *p;
 	ret = check_filter_block("app latency 34", &flow_record, 0);
 	ret = check_filter_block("client latency < 11", &flow_record, 0);
 	ret = check_filter_block("client latency > 11", &flow_record, 0);
+
+	flow_record.l7_proto_id = 125;
+	ret = check_filter_block("app proto Skype", &flow_record, 1);
+	ret = check_filter_block("app proto HTTP", &flow_record, 0);
+	ret = check_filter_block("app proto 11", &flow_record, 0);
+	ret = check_filter_block("app proto 125", &flow_record, 1);
+
+	flow_record.in_retransmission_bytes = 12345;
+	flow_record.in_retransmission_pkts = 1111;
+	flow_record.out_retransmission_bytes = 56789;
+	flow_record.out_retransmission_pkts = 2222;
+//	ret = check_filter_block("bytes retr 12345", &flow_record, 1);
+//	ret = check_filter_block("bytes retr > 12345", &flow_record, 1);
+//	ret = check_filter_block("bytes retr < 12345", &flow_record, 0);
+
+//	ret = check_filter_block("in retr bytes 12345", &flow_record, 1);
+//	ret = check_filter_block("in retr bytes > 12345", &flow_record, 1);
+//	ret = check_filter_block("in retr bytes < 12345", &flow_record, 0);
+//
+//	ret = check_filter_block("in retr packets 1111", &flow_record, 1);
+//
+//	ret = check_filter_block("out retr packets 2222", &flow_record, 1);
+//	ret = check_filter_block("out retr packets 1111", &flow_record, 0);
+
+	flow_record.in_ooo_pkts = 3333;
+	flow_record.out_ooo_pkts = 2222;
+	ret = check_filter_block("out ooo 2222", &flow_record, 1);
+	ret = check_filter_block("in ooo 3333", &flow_record, 1);
+	ret = check_filter_block("in ooo 3", &flow_record, 0);
+	ret = check_filter_block("in ooo > 3", &flow_record, 1);
+	ret = check_filter_block("in ooo < 1000", &flow_record, 0);
 
 	flow_record.exporter_sysid = 44;
 	ret = check_filter_block("sysid 44", &flow_record, 1);

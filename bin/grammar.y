@@ -108,7 +108,7 @@ char yyerror_buff[256];
 %token PPS BPS BPP DURATION NOT 
 %token IPV4 IPV6 BGPNEXTHOP ROUTER VLAN
 %token CLIENT SERVER APP LATENCY SYSID
-%token L7
+%token RETR OOO
 %token ASA REASON DENIED XEVENT XIP XNET XPORT INGRESS EGRESS ACL ACE XACE
 %token NAT ADD EVENT VRF NPORT NIP
 %token PBLOCK START END STEP SIZE
@@ -466,12 +466,99 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 		);
 	}
 
-	| L7 APP comp NUMBER { 	
-		$$.self = NewBlock(OffsetL7Proto, MaskL7Proto, $4, $3.comp, FUNC_NONE, NULL); 
+	| APP PROTO NUMBER { 
+		int64_t	proto;
+		proto = $3;
+
+		if ( proto > 255 ) {
+			yyerror("L7 Protocol number > 255");
+			YYABORT;
+		}
+		if ( proto < 0 ) {
+			yyerror("Unknown L7 protocol");
+			YYABORT;
+		}
+		$$.self = NewBlock(OffsetL7Proto, MaskL7Proto, (proto << ShiftL7Proto)  & MaskL7Proto, CMP_EQ, FUNC_NONE, NULL); 
+
+	}	
+	
+	| APP PROTO STRING { 
+		int64_t	proto;
+		proto = L7Proto_num($3);
+
+		if ( proto < 0 ) {
+			yyerror("Unknown L7 protocol");
+			YYABORT;
+		}
+		$$.self = NewBlock(OffsetL7Proto, MaskL7Proto, (proto << ShiftL7Proto)  & MaskL7Proto, CMP_EQ, FUNC_NONE, NULL); 
+	}
+		
+	| dqual RETR BYTES comp NUMBER {	
+
+		switch ( $1.direction ) {
+			case DIR_UNSPEC:
+			case DIR_IN: 
+				$$.self = NewBlock(OffsetBytesInRetransmission, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
+				break;
+			case DIR_OUT: 
+				$$.self = NewBlock(OffsetBytesOutRetransmission, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
+				break;
+			default:
+				yyerror("This token is not expected here!");
+				YYABORT;
+		} // End of switch
+
 	}
 
+	| dqual PACKETS RETR comp NUMBER {	
+
+		switch ( $1.direction ) {
+			case DIR_UNSPEC:
+			case DIR_IN: 
+				$$.self = NewBlock(OffsetPacketsInRetransmission, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
+				break;
+			case DIR_OUT: 
+				$$.self = NewBlock(OffsetPacketsOutRetransmission, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
+				break;
+			default:
+				yyerror("This token is not expected here!");
+				YYABORT;
+		} // End of switch
+
+	}
+
+	| dqual OOO comp NUMBER {	
+
+		switch ( $1.direction ) {
+			case DIR_UNSPEC:
+			case DIR_IN: 
+				$$.self = NewBlock(OffsetPacketsInOOO, MaskOOO, $4, $3.comp, FUNC_NONE, NULL); 
+				break;
+			case DIR_OUT: 
+				$$.self = NewBlock(OffsetPacketsOutOOO, MaskOOO, $4, $3.comp, FUNC_NONE, NULL); 
+				break;
+			default:
+				yyerror("This token is not expected here!");
+				YYABORT;
+		} // End of switch
+
+	}
+		
 	| CLIENT LATENCY comp NUMBER { 	
-		$$.self = NewBlock(OffsetClientLatency, MaskLatency, $4, $3.comp, FUNC_NONE, NULL); 
+		$$.self = NewBlock(OffsetClientLatencyMs, MaskLatencyMs, $4, $3.comp, FUNC_NONE, NULL); 
+	}
+
+	| SERVER LATENCY comp NUMBER { 	
+		$$.self = NewBlock(OffsetServerLatencyMs, MaskLatencyMs, $4, $3.comp, FUNC_NONE, NULL); 
+	}
+
+	| APP LATENCY comp NUMBER { 	
+		$$.self = NewBlock(OffsetAppLatencyMs, MaskLatencyMs, $4, $3.comp, FUNC_NONE, NULL); 
+	}
+	
+/*	
+	| CLIENT LATENCY comp NUMBER { 	
+		$$.self = NewBlock(OffsetClientLatencyMs, MaskLatency, $4, $3.comp, FUNC_NONE, NULL); 
 	}
 
 	| SERVER LATENCY comp NUMBER { 	
@@ -481,6 +568,7 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 	| APP LATENCY comp NUMBER { 	
 		$$.self = NewBlock(OffsetAppLatency, MaskLatency, $4, $3.comp, FUNC_NONE, NULL); 
 	}
+*/
 
 	| SYSID NUMBER { 	
 		if ( $2 > 255 ) {

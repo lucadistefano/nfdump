@@ -216,6 +216,7 @@ static void String_ServerLatency(master_record_t *r, char *string);
 
 static void String_AppLatency(master_record_t *r, char *string);
 
+static void String_L7Proto(master_record_t *r, char *string);
 static void String_L7ProtoID(master_record_t *r, char *string);
 static void String_Retransmission_InBytes(master_record_t *r, char *string);
 static void String_Retransmission_OutBytes(master_record_t *r, char *string);
@@ -404,7 +405,8 @@ static struct format_token_list_s {
 	{ "%orpkt", 0, "Retransmission Out Packets", 		String_Retransmission_OutPackets },
 	{ "%iopkt", 0, "OOO In Packets", 					String_OOO_InPackets },
 	{ "%oopkt", 0, "OOO Out Packets", 					String_OOO_OutPackets },
-	{ "%l7p",	0, "L7 proto", 			 				String_L7ProtoID },			// l7 proto id
+	{ "%l7p",	0, "L7 proto", 			 				String_L7Proto },			// l7 proto name
+	{ "%l7pid",	0, "L7 proto id",		 				String_L7ProtoID },			// l7 proto id
 
 	{ NULL, 0, NULL, NULL }
 };
@@ -412,6 +414,8 @@ static struct format_token_list_s {
 
 #define NumL7Protos	216
 #define MAX_L7PROTO_STR 30
+#define L7_STR_LEN 16
+// nprobe --help | grep "\[[ 0-9]*\] \w" | sed -r 's:\[(.+)\] (.*):"\2", //\1:g'
 // find \[(.+)\] (.*) subs "$2",  // $1
 char l7protolist[NumL7Protos][MAX_L7PROTO_STR] = {
 	"Unknown",  //   0
@@ -863,15 +867,31 @@ void Proto_string(uint8_t protonum, char *protostr) {
 
 } // End of Proto_string
 
-static void L7Proto_string(uint8_t protonum, char *protostr) {
+void L7Proto_string(uint8_t protonum, char *protostr) {
 
 	if ( protonum >= NumL7Protos) {
-		snprintf(protostr, 16, "%-4i", protonum );
+		snprintf(protostr, L7_STR_LEN, "%-4i", protonum );
 	} else {
-		strncpy(protostr, l7protolist[protonum], 16);
+		strncpy(protostr, l7protolist[protonum], L7_STR_LEN);
 	}
 
 } // End of Proto_string
+
+int L7Proto_num(char *protostr) {
+int i, len;
+
+	if ( (len = strlen(protostr)) >= L7_STR_LEN )
+		return -1;
+
+	for ( i=0; i<NumL7Protos; i++ ) {
+		if ( strncasecmp(protostr, l7protolist[i], len) == 0 &&
+			( l7protolist[i][len] == 0 || l7protolist[i][len] == ' ') )
+			return i;
+	}
+
+	return -1;
+
+} // End of Proto_num
 
 int Proto_num(char *protostr) {
 int i, len;
@@ -1320,11 +1340,10 @@ extension_map_t	*extension_map = r->map_ref;
 			
 			case EX_NP_LATENCY: {
 				snprintf(_s, slen-1,
-"  cli latency  =         %6llu ms\n"
-"  srv latency  =         %6llu ms\n"
-"  app latency  =         %6llu ms\n"
-, (long long unsigned)r->client_nw_delay_usec, (long long unsigned)r->server_nw_delay_usec,
-(long long unsigned)r->appl_latency_usec);
+"  cli latency  =         %6lu ms\n"
+"  srv latency  =         %6lu ms\n"
+"  app latency  =         %6lu ms\n"
+, r->client_nw_delay_msec, r->server_nw_delay_msec, r->appl_latency_msec);
 			} break;
 			case EX_NP_RETRANSMISSION: {
 				snprintf(_s, slen-1,
@@ -1342,9 +1361,11 @@ extension_map_t	*extension_map = r->map_ref;
 , (long long unsigned)r->in_ooo_pkts, (long long unsigned)r->out_ooo_pkts);
 			} break;
 			case EX_NP_L7_PROTO: {
+				char l7p[L7_STR_LEN];
+				L7Proto_string(r->l7_proto_id, l7p);
 				snprintf(_s, slen-1,
-"  l7 proto     =  %6u\n"
-				, r->l7_proto_id);
+"  l7 proto     = %s [%6u]\n"
+				,l7p , r->l7_proto_id);
 			} break;
 
 			case EX_ROUTER_ID:
@@ -1803,9 +1824,8 @@ master_record_t *r = (master_record_t *)record;
 	// EX_NP_LATENCY:
 	{
 		snprintf(_s, slen-1,
-				",%6llu,%6llu,%6llu",
-				(unsigned long long)r->client_nw_delay_msec, (unsigned long long)r->server_nw_delay_msec,
-				(unsigned long long)r->appl_latency_msec);
+				",%6lu,%6lu,%6lu",
+				r->client_nw_delay_msec, r->server_nw_delay_msec, r->appl_latency_msec);
 
 		_slen = strlen(data_string);
 		_s = data_string + _slen;
@@ -1834,7 +1854,9 @@ master_record_t *r = (master_record_t *)record;
 	}
 	// EX_NP_L7_PROTO:
 	{
-		snprintf(_s, slen-1, ",%6u", r->l7_proto_id);
+		char l7p[L7_STR_LEN];
+		L7Proto_string(r->l7_proto_id, l7p);
+		snprintf(_s, slen-1, ",%6u,%s", r->l7_proto_id, l7p);
 
 		_slen = strlen(data_string);
 		_s = data_string + _slen;
@@ -2967,12 +2989,17 @@ static void String_OOO_OutPackets(master_record_t *r, char *string) {
 
 } // End of String_OOO_OutPackets
 
-static void String_L7ProtoID(master_record_t *r, char *string) {
+static void String_L7Proto(master_record_t *r, char *string) {
 	// TODO resolve otf the mapping proto id <-> proto name
-	char s[16]; //	char s[MAX_L7PROTO_STR];
+	char s[L7_STR_LEN]; //	char s[MAX_L7PROTO_STR];
 	L7Proto_string(r->l7_proto_id, s);
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%s", s);
-//	snprintf(string, MAX_STRING_LENGTH-1 ,"%6u", r->l7_proto_id);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%16s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_L7Proto
+
+static void String_L7ProtoID(master_record_t *r, char *string) {
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6u", r->l7_proto_id);
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_L7ProtoID

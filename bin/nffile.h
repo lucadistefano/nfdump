@@ -2133,34 +2133,38 @@ typedef struct master_record_s {
 	uint64_t	client_nw_delay_msec;	// index LATENCY_BASE_OFFSET 0xffff'ffff'ffff'ffff
 	uint64_t	server_nw_delay_msec;	// index LATENCY_BASE_OFFSET + 1 0xffff'ffff'ffff'ffff
 	uint64_t	appl_latency_msec;		// index LATENCY_BASE_OFFSET + 2 0xffff'ffff'ffff'ffff
-//#define LATENCY_MS_BASE_OFFSET     (offsetof(master_record_t, client_nw_delay_msec) >> 3)
-//#   define OffsetClientLatencyMs  LATENCY_MS_BASE_OFFSET
-//#   define OffsetServerLatencyMs  LATENCY_MS_BASE_OFFSET + 1
-//#   define OffsetAppLatencyMs     LATENCY_MS_BASE_OFFSET + 2
-//#   define MaskLatencyMs          0xFFFFFFFFFFFFFFFFLL
-//#   define ShiftLatencyMs         0
+#define LATENCY_MS_BASE_OFFSET     (offsetof(master_record_t, client_nw_delay_msec) >> 3)
+#   define OffsetClientLatencyMs  LATENCY_MS_BASE_OFFSET
+#   define OffsetServerLatencyMs  LATENCY_MS_BASE_OFFSET + 1
+#   define OffsetAppLatencyMs     LATENCY_MS_BASE_OFFSET + 2
+#   define MaskLatencyMs          0xFFFFFFFFFFFFFFFFLL
+#   define ShiftLatencyMs         0
 
 	uint64_t	in_retransmission_pkts;
 	uint64_t	out_retransmission_pkts;
 	uint64_t	in_retransmission_bytes;
 	uint64_t	out_retransmission_bytes;
-//#define RETRANSMISSION_BASE_OFFSET     (offsetof(master_record_t, in_retransmission_pkts) >> 3)
-//#   define OffsetRetransmission	RETRANSMISSION_BASE_OFFSET
-//#	define MaskRetransmission		0x000000000000FFFFLL
-//#   define ShiftRetransmission      0
+#define RETRANSMISSION_BASE_OFFSET     (offsetof(master_record_t, in_retransmission_pkts) >> 3)
+#   define OffsetBytesInRetransmission		RETRANSMISSION_BASE_OFFSET
+#   define OffsetBytesOutRetransmission		RETRANSMISSION_BASE_OFFSET + 1
+#   define OffsetPacketsInRetransmission	RETRANSMISSION_BASE_OFFSET + 2
+#   define OffsetPacketsOutRetransmission	RETRANSMISSION_BASE_OFFSET + 3
+#	define MaskRetransmission		0xFFFFFFFFFFFFFFFFLL
+#   define ShiftRetransmission      0
 
 	uint64_t	in_ooo_pkts;
 	uint64_t	out_ooo_pkts;
-//#define OOO_BASE_OFFSET     (offsetof(master_record_t, in_ooo_pkts) >> 3)
-//#   define OffsetOOO	OOO_BASE_OFFSET
-//#	define MaskOOO		0x00000000FFFFFFFFLL
-//#   define ShiftOOO		0
+#define OOO_BASE_OFFSET     (offsetof(master_record_t, in_ooo_pkts) >> 3)
+#   define OffsetPacketsInOOO	OOO_BASE_OFFSET
+#   define OffsetPacketsOutOOO	OOO_BASE_OFFSET + 1
+#	define MaskOOO		0xFFFFFFFFFFFFFFFFLL
+#   define ShiftOOO		0
 
 	uint32_t	l7_proto_id;
 #define L7_BASE_OFFSET     (offsetof(master_record_t, l7_proto_id) >> 3)
 #   define OffsetL7Proto	L7_BASE_OFFSET
-#	define MaskL7Proto		0x000000000000FFFFLL
-#   define ShiftL7Appl      0
+#	define MaskL7Proto		0x00000000FFFFFFFFLL
+#   define ShiftL7Proto     0
 
 	// flow received time in ms
 	uint64_t	received;

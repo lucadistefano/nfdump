@@ -87,6 +87,8 @@ int Getv6Mode(void);
 
 int Proto_num(char *protostr);
 
+int L7Proto_num(char *protostr);
+
 void format_file_block_header(void *header, char **s, int tag);
 
 char *format_csv_header(void);
@@ -113,6 +115,8 @@ uint32_t Get_fwd_status_id(char *status);
 char *Get_fwd_status_name(uint32_t id);
 
 void Proto_string(uint8_t protonum, char *protostr);
+
+void L7Proto_string(uint8_t protonum, char *protostr);
 
 void condense_v6(char *s);
 
