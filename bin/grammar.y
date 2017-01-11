@@ -467,7 +467,7 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 	}
 
 	| L7 APP comp NUMBER { 	
-		$$.self = NewBlock(OffsetL7ApplID, MaskL7Appl, $4, $3.comp, FUNC_NONE, NULL); 
+		$$.self = NewBlock(OffsetL7Proto, MaskL7Proto, $4, $3.comp, FUNC_NONE, NULL); 
 	}
 
 	| CLIENT LATENCY comp NUMBER { 	
