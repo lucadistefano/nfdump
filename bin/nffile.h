@@ -1114,7 +1114,7 @@ typedef struct tpl_ext_43_s {
 /*
  * nprobe extensions
  */
-
+//#ifdef DEPRECATED_NPROBE_LATENCY
 /*
  * latency extension 
  * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
@@ -1132,6 +1132,7 @@ typedef struct tpl_ext_latency_s {
 	uint64_t	appl_latency_usec;
 	uint8_t		data[4];	// points to further data
 } tpl_ext_latency_t;
+//#endif
 
 /*
  * NEL xlate ports
@@ -2115,7 +2116,7 @@ typedef struct master_record_s {
 #endif
 
 #endif
-
+#ifdef DEPRECATED_NPROBE_LATENCY
 	// nprobe extensions
 	// latency extension
 	uint64_t	client_nw_delay_usec;	// index LATENCY_BASE_OFFSET 0xffff'ffff'ffff'ffff
@@ -2129,16 +2130,19 @@ typedef struct master_record_s {
 #   define MaskLatency          0xFFFFFFFFFFFFFFFFLL
 #   define ShiftLatency         0
 
-	// latency extension
+#else
+	// latency extension	//TODO checge to 32bit
 	uint64_t	client_nw_delay_msec;	// index LATENCY_BASE_OFFSET 0xffff'ffff'ffff'ffff
 	uint64_t	server_nw_delay_msec;	// index LATENCY_BASE_OFFSET + 1 0xffff'ffff'ffff'ffff
 	uint64_t	appl_latency_msec;		// index LATENCY_BASE_OFFSET + 2 0xffff'ffff'ffff'ffff
 #define LATENCY_MS_BASE_OFFSET     (offsetof(master_record_t, client_nw_delay_msec) >> 3)
-#   define OffsetClientLatencyMs  LATENCY_MS_BASE_OFFSET
-#   define OffsetServerLatencyMs  LATENCY_MS_BASE_OFFSET + 1
-#   define OffsetAppLatencyMs     LATENCY_MS_BASE_OFFSET + 2
-#   define MaskLatencyMs          0xFFFFFFFFFFFFFFFFLL
-#   define ShiftLatencyMs         0
+#   define OffsetClientLatency  LATENCY_MS_BASE_OFFSET
+#   define OffsetServerLatency  LATENCY_MS_BASE_OFFSET + 1
+#   define OffsetAppLatency     LATENCY_MS_BASE_OFFSET + 2
+#   define MaskLatency          0xFFFFFFFFFFFFFFFFLL
+#   define ShiftLatency         0
+
+#endif /* DEPRECATED_NPROBE_LATENCY */
 
 	uint64_t	in_retransmission_pkts;
 	uint64_t	out_retransmission_pkts;

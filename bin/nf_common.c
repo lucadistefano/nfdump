@@ -210,23 +210,27 @@ static void String_MPLSs(master_record_t *r, char *string);
 
 static void String_Engine(master_record_t *r, char *string);
 
+#ifdef DEPRECATED_NPROBE_LATENCY
 static void String_ClientLatency(master_record_t *r, char *string);
 
 static void String_ServerLatency(master_record_t *r, char *string);
 
 static void String_AppLatency(master_record_t *r, char *string);
+#else
+static void String_ClientLatencyMs(master_record_t *r, char *string);
+static void String_ServerLatencyMs(master_record_t *r, char *string);
+static void String_AppLatencyMs(master_record_t *r, char *string);
+#endif
 
 static void String_L7Proto(master_record_t *r, char *string);
 static void String_L7ProtoID(master_record_t *r, char *string);
+
 static void String_Retransmission_InBytes(master_record_t *r, char *string);
 static void String_Retransmission_OutBytes(master_record_t *r, char *string);
 static void String_Retransmission_InPackets(master_record_t *r, char *string);
 static void String_Retransmission_OutPackets(master_record_t *r, char *string);
 static void String_OOO_InPackets(master_record_t *r, char *string);
 static void String_OOO_OutPackets(master_record_t *r, char *string);
-static void String_ClientLatencyMs(master_record_t *r, char *string);
-static void String_ServerLatencyMs(master_record_t *r, char *string);
-static void String_AppLatencyMs(master_record_t *r, char *string);
 
 static void String_bps(master_record_t *r, char *string);
 
@@ -389,16 +393,17 @@ static struct format_token_list_s {
 	{ "%pbstep",  0, "Pb-Step", 			  String_PortBlockStep},	// Port block step
 	{ "%pbsize",  0, "Pb-Size", 			  String_PortBlockSize},	// Port block size
 #endif
-
+#ifdef DEPRECATED_NPROBE_LATENCY
 	// nprobe latency
-//	{ "%cl", 0, "C Latency", 	 		 	String_ClientLatency },	// client latency
-//	{ "%sl", 0, "S latency", 	 		 	String_ServerLatency },	// server latency
-//	{ "%al", 0, "A latency", 			 	String_AppLatency },	// app latency
-
-	// nprobe	
+	{ "%cl", 0, "C Latency", 	 		 	String_ClientLatency },	// client latency
+	{ "%sl", 0, "S latency", 	 		 	String_ServerLatency },	// server latency
+	{ "%al", 0, "A latency", 			 	String_AppLatency },	// app latency
+#else
 	{ "%cl", 	0, "C Latency", 	 		 			String_ClientLatencyMs },	// client latency
 	{ "%sl", 	0, "S latency", 	 		 			String_ServerLatencyMs },	// server latency
 	{ "%al", 	0, "A latency", 			 			String_AppLatencyMs },		// app latency
+#endif
+	// nprobe
 	{ "%irbyt", 0, "Retransmission In Bytes", 			String_Retransmission_InBytes },
 	{ "%orbyt", 0, "Retransmission Out Bytes", 			String_Retransmission_OutBytes },
 	{ "%irpkt", 0, "Retransmission In Packets", 		String_Retransmission_InPackets },
@@ -1320,6 +1325,7 @@ extension_map_t	*extension_map = r->map_ref;
 				_s = data_string + _slen;
 				slen = STRINGSIZE - _slen;
 			break;
+#ifdef DEPRECATED_NPROBE_LATENCY
 			case EX_LATENCY: {
 				double f1, f2, f3;
 				f1 = (double)r->client_nw_delay_usec / 1000.0;
@@ -1337,7 +1343,7 @@ extension_map_t	*extension_map = r->map_ref;
 				slen = STRINGSIZE - _slen;
 
 			} break;
-			
+#else
 			case EX_NP_LATENCY: {
 				snprintf(_s, slen-1,
 "  cli latency  =         %6lu ms\n"
@@ -1345,6 +1351,7 @@ extension_map_t	*extension_map = r->map_ref;
 "  app latency  =         %6lu ms\n"
 , r->client_nw_delay_msec, r->server_nw_delay_msec, r->appl_latency_msec);
 			} break;
+#endif
 			case EX_NP_RETRANSMISSION: {
 				snprintf(_s, slen-1,
 "  in  retr pkt =         %6llu ms\n"
@@ -1806,7 +1813,7 @@ master_record_t *r = (master_record_t *)record;
 			slen = STRINGSIZE - _slen;
 		}
 	} 
-
+#ifdef DEPRECATED_NPROBE_LATENCY
 	{
 		double f1, f2, f3;
 		f1 = (double)r->client_nw_delay_usec / 1000.0;
@@ -1820,7 +1827,7 @@ master_record_t *r = (master_record_t *)record;
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
 	} 
-	
+#else
 	// EX_NP_LATENCY:
 	{
 		snprintf(_s, slen-1,
@@ -1831,6 +1838,8 @@ master_record_t *r = (master_record_t *)record;
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
 	}
+#endif
+
 	// EX_NP_RETRANSMISSION:
 	{
 		snprintf(_s, slen-1,
@@ -2893,7 +2902,7 @@ static void String_Engine(master_record_t *r, char *string) {
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_Engine
-
+#ifdef DEPRECATED_NPROBE_LATENCY
 static void String_ClientLatency(master_record_t *r, char *string) {
 double latency;
 
@@ -2920,7 +2929,7 @@ double latency;
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_AppLatency
-
+#else
 static void String_ClientLatencyMs(master_record_t *r, char *string) {
 	snprintf(string, MAX_STRING_LENGTH-1 ,"%6lu", r->client_nw_delay_msec);
 	string[MAX_STRING_LENGTH-1] = '\0';
@@ -2938,6 +2947,7 @@ static void String_AppLatencyMs(master_record_t *r, char *string) {
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_AppLatency
+#endif
 
 static void String_Retransmission_InBytes(master_record_t *r, char *string) {
 	char s[NUMBER_STRING_SIZE];

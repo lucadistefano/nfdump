@@ -990,22 +990,15 @@ void *p;
 		flow_record.mpls_label[i-1] = 0x10;	// init to some value
 	}
 
-//	flow_record.client_nw_delay_usec = 11;
-//	flow_record.server_nw_delay_usec = 22;
-//	flow_record.appl_latency_usec	 = 33;
-//
-//	ret = check_filter_block("client latency 11", &flow_record, 1);
-//	ret = check_filter_block("server latency 22", &flow_record, 1);
-//	ret = check_filter_block("app latency 33", &flow_record, 1);
-//	ret = check_filter_block("client latency 12", &flow_record, 0);
-//	ret = check_filter_block("server latency 23", &flow_record, 0);
-//	ret = check_filter_block("app latency 34", &flow_record, 0);
-//	ret = check_filter_block("client latency < 11", &flow_record, 0);
-//	ret = check_filter_block("client latency > 11", &flow_record, 0);
-
+#ifdef DEPRECATED_NPROBE_LATENCY
+	flow_record.client_nw_delay_usec = 11;
+	flow_record.server_nw_delay_usec = 22;
+	flow_record.appl_latency_usec	 = 33;
+#else
 	flow_record.client_nw_delay_msec = 11;
 	flow_record.server_nw_delay_msec = 22;
 	flow_record.appl_latency_msec	 = 33;
+#endif
 
 	ret = check_filter_block("client latency 11", &flow_record, 1);
 	ret = check_filter_block("server latency 22", &flow_record, 1);

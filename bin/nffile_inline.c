@@ -360,6 +360,7 @@ void		*p = (void *)input_record;
 				output_record->bgpPrevAdjacentAS = tpl->bgpPrevAdjacentAS;
 				p = (void *)tpl->data;
 			} break;
+#ifdef DEPRECATED_NPROBE_LATENCY
 			case EX_LATENCY: {
 				tpl_ext_latency_t *tpl = (tpl_ext_latency_t *)p;
 				output_record->client_nw_delay_usec = tpl->client_nw_delay_usec;
@@ -367,7 +368,7 @@ void		*p = (void *)input_record;
 				output_record->appl_latency_usec = tpl->appl_latency_usec;
 				p = (void *)tpl->data;
 			} break;
-			
+#else
 			case EX_NP_LATENCY: {
 				tpl_ext_latencyms_t *tpl = (tpl_ext_latencyms_t *)p;
 				output_record->client_nw_delay_msec = tpl->client_nw_delay_msec;
@@ -375,6 +376,7 @@ void		*p = (void *)input_record;
 				output_record->appl_latency_msec = tpl->appl_latency_msec;
 				p = (void *)tpl->data;
 			} break;
+#endif
 			case EX_NP_RETRANSMISSION:{
 				tpl_ext_retransmission_t *tpl = (tpl_ext_retransmission_t *)p;
 				output_record->in_retransmission_bytes = tpl->retransmitted_in_bytes;
