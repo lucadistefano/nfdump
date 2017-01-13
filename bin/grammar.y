@@ -491,7 +491,7 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 		}
 		$$.self = NewBlock(OffsetL7Proto, MaskL7Proto, (proto << ShiftL7Proto)  & MaskL7Proto, CMP_EQ, FUNC_NONE, NULL); 
 	}
-/*		
+
 	| dqual RETR BYTES comp NUMBER {	
 
 		switch ( $1.direction ) {
@@ -525,7 +525,7 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 		} // End of switch
 
 	}
-*/
+
 	| dqual OOO comp NUMBER {	
 
 		switch ( $1.direction ) {

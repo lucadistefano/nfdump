@@ -8,4 +8,4 @@ Add extensions:
 4. test filter with nftest.
 5. nffile_inline.c
 6. nf_common.c define printing functions
-7. nfsta.c add stat definitions
+7. nfstat.c add stat definitions

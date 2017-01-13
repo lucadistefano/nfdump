@@ -2116,6 +2116,7 @@ typedef struct master_record_s {
 #endif
 
 #endif
+
 #ifdef DEPRECATED_NPROBE_LATENCY
 	// nprobe extensions
 	// latency extension
@@ -2131,7 +2132,7 @@ typedef struct master_record_s {
 #   define ShiftLatency         0
 
 #else
-	// latency extension	//TODO checge to 32bit
+	// latency extension	//TODO change to 32bit
 	uint64_t	client_nw_delay_msec;	// index LATENCY_BASE_OFFSET 0xffff'ffff'ffff'ffff
 	uint64_t	server_nw_delay_msec;	// index LATENCY_BASE_OFFSET + 1 0xffff'ffff'ffff'ffff
 	uint64_t	appl_latency_msec;		// index LATENCY_BASE_OFFSET + 2 0xffff'ffff'ffff'ffff
