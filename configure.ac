@@ -20,7 +20,7 @@ AM_PROG_CC_C_O
 dnl get the flags
 CFLAGS="${CFLAGS=}"
 if test $ac_cv_prog_gcc = yes -a "x$CFLAGS" = "x-g -O2"; then
-	CFLAGS="-g -O2 -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn -fno-strict-aliasing"
+	CFLAGS="-g -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn -fno-strict-aliasing"
 fi
 
 AC_ARG_ENABLE(devel,
@@ -28,11 +28,12 @@ AC_ARG_ENABLE(devel,
 
 # Which way is better?
 if test "${enable_devel}" = "yes" ; then
-	CFLAGS="$CFLAGS -DDEVEL"
+	CFLAGS="$CFLAGS -O0 -DDEVEL"
 cat >>config.h <<_ACEOF
 #define dbg_printf(...) printf(__VA_ARGS__)
 _ACEOF
 else
+	CFLAGS="$CFLAGS -O2"
 cat >>config.h <<_ACEOF
 #define dbg_printf(...) /* printf(__VA_ARGS__) */
 _ACEOF
