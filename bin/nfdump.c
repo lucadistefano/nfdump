@@ -464,6 +464,7 @@ int	v1_map_done = 0;
 				else 
 					LogError("Read error in file '%s': %s\n",GetCurrentFilename(), strerror(errno) );
 				// fall through - get next file in chain
+				/* no break */
 			case NF_EOF: {
 				nffile_t *next = GetNextFile(nffile_r, twin_start, twin_end);
 				if ( next == EMPTY_LIST ) {
@@ -801,6 +802,7 @@ char 		Ident[IDENTLEN];
 				break;
 			case 'B':
 				GuessDir = 1;
+				/* no break */
 			case 'b':
 				if ( !SetBidirAggregation() ) {
 					exit(255);
