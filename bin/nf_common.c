@@ -416,12 +416,13 @@ static struct format_token_list_s {
 	{ NULL, 0, NULL, NULL }
 };
 
-
+// TODO read it from file
 #define NumL7Protos	216
 #define MAX_L7PROTO_STR 30
 #define L7_STR_LEN 16
+// get the list from nprobe:
 // nprobe --help | grep "\[[ 0-9]*\] \w" | sed -r 's:\[(.+)\] (.*):"\2", //\1:g'
-// find \[(.+)\] (.*) subs "$2",  // $1
+// eclipse regexp: find \[(.+)\] (.*) subs "$2",  // $1
 char l7protolist[NumL7Protos][MAX_L7PROTO_STR] = {
 	"Unknown",  //   0
 	"FTP_CONTROL",  //   1
@@ -1871,7 +1872,14 @@ master_record_t *r = (master_record_t *)record;
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
 	}
+	// num aggregated flows
+	{
+		snprintf(_s, slen-1, ",%6u", r->aggr_flows);
 
+		_slen = strlen(data_string);
+		_s = data_string + _slen;
+		slen = STRINGSIZE - _slen;
+	}
 	// EX_ROUTER_IP_v4:
 	if ( (r->flags & FLAG_IPV6_EXP ) != 0 ) { // IPv6
 		// EX_NEXT_HOP_v6:
