@@ -1179,16 +1179,34 @@ typedef struct tpl_ext_48_s {
 
 #define EX_NEL_RESERVED_1	49
 
+#ifdef HAVE_NPROBE_EXTENSIONS
 /*
  * nprobe extensions
  */
+
+
+/*
+ * latency extension
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ * |  0 |           client_nw_delay_msec (57554)                    |                  server_nw_delay_msec (57557)             |
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ * |  1 |           appl_latency_msec (57558)                       |                                                           |
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ */
+#define EX_NP_LATENCY 50
+typedef struct tpl_ext_latencyms_s {
+	uint32_t	client_nw_delay_msec;
+	uint32_t	server_nw_delay_msec;
+	uint32_t	appl_latency_msec;
+	uint8_t		data[4];	// points to further data
+} tpl_ext_latencyms_t;
 /*
  * l7 proto id
  * +----+--------------+--------------+--------------+--------------+
  * |  0 |       L7_PROTO (57590)      |                             |
  * +----+--------------+--------------+--------------+--------------+
  */
-#define EX_NP_L7_PROTO 50
+#define EX_NP_L7_PROTO 51
 typedef struct tpl_ext_l7_appl_s {
 	uint16_t	l7_proto_id;
 	uint16_t	l7_parent_proto_id; // TODO not yet used (fill)
@@ -1200,15 +1218,11 @@ typedef struct tpl_ext_l7_appl_s {
  * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
  * |  0 |                                                           |                                                           |
  * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- * |  1 |                                                           |                                                           |
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
  */
-#define EX_NP_RETRANSMISSION 51
+#define EX_NP_RETRANSMISSION 52
 typedef struct tpl_ext_retransmission_s {
 	uint32_t	retransmitted_in_pkts;
-	uint32_t	retransmitted_out_pkts;
 	uint32_t	retransmitted_in_bytes;
-	uint32_t	retransmitted_out_bytes;
 	uint8_t		data[4];	// points to further data
 } tpl_ext_retransmission_t;
 
@@ -1218,37 +1232,46 @@ typedef struct tpl_ext_retransmission_s {
  * |  0 |                                                           |                                                           |
  * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
  */
-#define EX_NP_OOO 52
+#define EX_NP_OOO 53
 typedef struct tpl_ext_ooo_s {
 	uint32_t	ooo_in_pkts;
-	uint32_t	ooo_out_pkts;
 	uint8_t		data[4];	// points to further data
 } tpl_ext_ooo_t;
 
+
 /*
- * latency extension
+ * out retransmissions
  * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- * |  0 |           client_nw_delay_msec (57554)                    |                  server_nw_delay_msec (57557)             |
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- * |  1 |           appl_latency_msec (57558)                       |                                                           |
+ * |  0 |                                                           |                                                           |
  * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
  */
-#define EX_NP_LATENCY 53
-typedef struct tpl_ext_latencyms_s {
-	uint32_t	client_nw_delay_msec;
-	uint32_t	server_nw_delay_msec;
-	uint32_t	appl_latency_msec;
+#define EX_NP_OUT_RETRANSMISSION 54
+typedef struct tpl_ext_out_retransmissions {
+	uint32_t	retransmitted_out_pkts;
+	uint32_t	retransmitted_out_bytes;
 	uint8_t		data[4];	// points to further data
-} tpl_ext_latencyms_t;
+} tpl_ext_out_retransmission_t;
 
-#define EX_NPROBE_RESERVED_1 54
-#define EX_NPROBE_RESERVED_2 55
+/*
+ * out out of order packets
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ * |  0 |                                                           |                                                           |
+ * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+ */
+#define EX_NP_OUT_OOO 55
+typedef struct tpl_ext_out_ooo_s {
+	uint32_t	ooo_out_pkts;
+	uint8_t		data[4];	// points to further data
+} tpl_ext_out_ooo_t;
+
 #define EX_NPROBE_RESERVED_3 56
 #define EX_NPROBE_RESERVED_4 57
 #define EX_NPROBE_RESERVED_5 58
 #define EX_NPROBE_RESERVED_6 59
 #define EX_NPROBE_RESERVED_7 60
 #define EX_NPROBE_RESERVED_8 61
+
+#endif
 
 /* 
  * 
@@ -1500,7 +1523,14 @@ typedef struct master_record_s {
 #define BYTE_OFFSET_first	12
 
 	uint32_t	first;			// index 1	0x0000'0000'ffff'ffff
-
+#	define OffsetFirst 	1
+#ifdef WORDS_BIGENDIAN
+#	define MaskFirst  	0x00000000ffffffffLL
+#	define ShiftFirst 	32
+#else
+#	define MaskFirst  	0xffffffff00000000LL
+#	define ShiftFirst 	32
+#endif
 	//
 	uint32_t	last;			// index 2	0xffff'ffff'0000'0000
 	uint8_t		fwd_status;		// index 2	0x0000'0000'ff00'0000
@@ -1508,6 +1538,10 @@ typedef struct master_record_s {
 	uint8_t		prot;			// index 2  0x0000'0000'0000'ff00
 	uint8_t		tos;			// index 2  0x0000'0000'0000'00ff
 #ifdef WORDS_BIGENDIAN
+#	define OffsetLast 			2
+#	define MaskLast  			0xffffffff00000000LL
+#	define ShiftLast  			32
+
 #	define OffsetStatus 		2
 #	define MaskStatus  			0x00000000ff000000LL
 #	define ShiftStatus  		24
@@ -1525,6 +1559,10 @@ typedef struct master_record_s {
 #	define ShiftTos  			0
 
 #else
+#	define OffsetLast 			2
+#	define MaskLast  			0x00000000ffffffffLL
+#	define ShiftLast  			0
+
 #	define OffsetStatus 		2
 #	define MaskStatus  			0x000000ff00000000LL
 #	define ShiftStatus  		32
@@ -2131,7 +2169,9 @@ typedef struct master_record_s {
 #   define MaskLatency          0xFFFFFFFFFFFFFFFFLL
 #   define ShiftLatency         0
 
-#else
+#endif /* DEPRECATED_NPROBE_LATENCY */
+
+#ifdef HAVE_NPROBE_EXTENSIONS
 	// latency extension	//TODO change to 32bit
 	uint64_t	client_nw_delay_msec;	// index LATENCY_BASE_OFFSET 0xffff'ffff'ffff'ffff
 	uint64_t	server_nw_delay_msec;	// index LATENCY_BASE_OFFSET + 1 0xffff'ffff'ffff'ffff
@@ -2143,33 +2183,52 @@ typedef struct master_record_s {
 #   define MaskLatency          0xFFFFFFFFFFFFFFFFLL
 #   define ShiftLatency         0
 
-#endif /* DEPRECATED_NPROBE_LATENCY */
-
 	uint64_t	in_retransmission_pkts;
-	uint64_t	out_retransmission_pkts;
 	uint64_t	in_retransmission_bytes;
-	uint64_t	out_retransmission_bytes;
+
 #define RETRANSMISSION_BASE_OFFSET     (offsetof(master_record_t, in_retransmission_pkts) >> 3)
-#   define OffsetBytesInRetransmission		RETRANSMISSION_BASE_OFFSET
-#   define OffsetBytesOutRetransmission		RETRANSMISSION_BASE_OFFSET + 1
-#   define OffsetPacketsInRetransmission	RETRANSMISSION_BASE_OFFSET + 2
-#   define OffsetPacketsOutRetransmission	RETRANSMISSION_BASE_OFFSET + 3
+#   define OffsetPacketsInRetransmission	RETRANSMISSION_BASE_OFFSET
+#   define OffsetBytesInRetransmission		RETRANSMISSION_BASE_OFFSET + 1
 #	define MaskRetransmission		0xFFFFFFFFFFFFFFFFLL
 #   define ShiftRetransmission      0
 
 	uint64_t	in_ooo_pkts;
-	uint64_t	out_ooo_pkts;
 #define OOO_BASE_OFFSET     (offsetof(master_record_t, in_ooo_pkts) >> 3)
 #   define OffsetPacketsInOOO	OOO_BASE_OFFSET
-#   define OffsetPacketsOutOOO	OOO_BASE_OFFSET + 1
 #	define MaskOOO		0xFFFFFFFFFFFFFFFFLL
 #   define ShiftOOO		0
 
 	uint32_t	l7_proto_id;
+	uint32_t	l7_fill;
 #define L7_BASE_OFFSET     (offsetof(master_record_t, l7_proto_id) >> 3)
 #   define OffsetL7Proto	L7_BASE_OFFSET
+#ifdef WORDS_BIGENDIAN
+#	define MaskL7Proto		0xFFFFFFFF00000000LL
+#   define ShiftL7Proto     32
+#else
 #	define MaskL7Proto		0x00000000FFFFFFFFLL
 #   define ShiftL7Proto     0
+#endif
+
+#ifdef	HAVE_NPROBE_OUT_EXTENSIONS
+	uint64_t	out_retransmission_pkts;
+	uint64_t	out_retransmission_bytes;
+#define RETRANSMISSION_OUT_BASE_OFFSET     (offsetof(master_record_t, in_retransmission_pkts) >> 3)
+#   define OffsetPacketsOutRetransmission	RETRANSMISSION_OUT_BASE_OFFSET
+#   define OffsetBytesOutRetransmission		RETRANSMISSION_OUT_BASE_OFFSET + 1
+#	define MaskOutRetransmission		0xFFFFFFFFFFFFFFFFLL
+#   define ShiftOutRetransmission		0
+
+	uint64_t	out_ooo_pkts;
+#define OOO_OUT_BASE_OFFSET     (offsetof(master_record_t, in_ooo_pkts) >> 3)
+#   define OffsetPacketsOutOOO	OOO_OUT_BASE_OFFSET
+#	define MaskOutOOO		0xFFFFFFFFFFFFFFFFLL
+#   define ShiftOutOOO		0
+
+#endif
+
+
+#endif /* HAVE_NPROBE_EXTENSIONS */
 
 	// flow received time in ms
 	uint64_t	received;

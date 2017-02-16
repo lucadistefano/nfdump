@@ -297,13 +297,12 @@ typedef struct common_header_s {
 #define NF9_NPROBE_SERVER_NW_DELAY_USEC 57557
 #define NF9_NPROBE_APPL_LATENCY_SEC		57558
 #define NF9_NPROBE_APPL_LATENCY_USEC	57559
-#else
+#endif
+
+#ifdef HAVE_NPROBE_EXTENSIONS
 #define NF9_NPROBE_CLIENT_NW_LATENCY_MS		57595
 #define NF9_NPROBE_SERVER_NW_LATENCY_MS		57596
 #define NF9_NPROBE_APPL_LATENCY_MS			57597
-#endif
-
-// nprobe extensions
 
 #define NF9_NPROBE_RETRANSMITTED_IN_BYTES	57599
 #define NF9_NPROBE_RETRANSMITTED_OUT_BYTES	57600
@@ -314,6 +313,7 @@ typedef struct common_header_s {
 #define NF9_NPROBE_OOORDER_OUT_PKTS			57584
 
 #define NF9_NPROBE_L7_PROTO					57590
+#endif
 
 /* prototypes */
 int Init_v9(void);

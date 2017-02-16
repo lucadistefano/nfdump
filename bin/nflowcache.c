@@ -155,8 +155,11 @@ static struct aggregate_info_s {
 	{ "tos",		{ 1, OffsetTos, 		MaskTos, 	 ShiftTos },   		-1, 0, 	"%tos"	},
 	{ "srctos",		{ 1, OffsetTos, 		MaskTos, 	 ShiftTos },   		-1, 0,	"%stos"	},
 	{ "dsttos",		{ 1, OffsetDstTos, 		MaskDstTos,  ShiftDstTos },   	-1, 0,	"%dtos"	},
-
+#ifdef HAVE_NPROBE_EXTENSIONS
 	{ "l7proto",	{ 4, OffsetL7Proto, 	MaskL7Proto, ShiftL7Proto },    -1, 0,	"%l7p" },
+#endif
+	{ "ts",			{ 4, OffsetFirst, 		MaskFirst, ShiftFirst },    	-1, 0,	"%ts" },
+	{ "te",			{ 4, OffsetLast, 		MaskLast, ShiftLast },    		-1, 0,	"%te" },
 
 	{ NULL,			{ 0, 0, 0, 0}, 0, 0, NULL}
 };

@@ -107,7 +107,9 @@ char yyerror_buff[256];
 %token NUMBER STRING IDENT PORTNUM ICMP_TYPE ICMP_CODE ENGINE_TYPE ENGINE_ID AS PACKETS BYTES FLOWS 
 %token PPS BPS BPP DURATION NOT 
 %token IPV4 IPV6 BGPNEXTHOP ROUTER VLAN
-%token CLIENT SERVER APP LATENCY RETR OOO SYSID
+%token CLIENT SERVER APP LATENCY 
+%token RETRANSMITTED OUTOFORDER
+%token SYSID
 %token ASA REASON DENIED XEVENT XIP XNET XPORT INGRESS EGRESS ACL ACE XACE
 %token NAT ADD EVENT VRF NPORT NIP
 %token PBLOCK START END STEP SIZE
@@ -492,16 +494,18 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 		$$.self = NewBlock(OffsetL7Proto, MaskL7Proto, (proto << ShiftL7Proto)  & MaskL7Proto, CMP_EQ, FUNC_NONE, NULL); 
 	}
 
-	| dqual RETR BYTES comp NUMBER {	
+	| dqual RETRANSMITTED BYTES comp NUMBER {	
 
 		switch ( $1.direction ) {
 			case DIR_UNSPEC:
 			case DIR_IN: 
 				$$.self = NewBlock(OffsetBytesInRetransmission, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
 				break;
+#ifdef HAVE_NPROBE_OUT_EXTENSIONS				
 			case DIR_OUT: 
-				$$.self = NewBlock(OffsetBytesOutRetransmission, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
+				$$.self = NewBlock(OffsetBytesOutRetransmission, MaskOutRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
 				break;
+#endif				
 			default:
 				yyerror("This token is not expected here!");
 				YYABORT;
@@ -509,16 +513,18 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 
 	}
 
-	| dqual RETR PACKETS comp NUMBER {	
+	| dqual RETRANSMITTED PACKETS comp NUMBER {	
 
 		switch ( $1.direction ) {
 			case DIR_UNSPEC:
 			case DIR_IN: 
 				$$.self = NewBlock(OffsetPacketsInRetransmission, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
 				break;
+#ifdef HAVE_NPROBE_OUT_EXTENSIONS				
 			case DIR_OUT: 
-				$$.self = NewBlock(OffsetPacketsOutRetransmission, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
+				$$.self = NewBlock(OffsetPacketsOutRetransmission, MaskOutRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
 				break;
+#endif
 			default:
 				yyerror("This token is not expected here!");
 				YYABORT;
@@ -526,21 +532,21 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 
 	}
 
-	| dqual OOO comp NUMBER {	
-
+	| dqual OUTOFORDER PACKETS comp NUMBER {
 		switch ( $1.direction ) {
 			case DIR_UNSPEC:
 			case DIR_IN: 
-				$$.self = NewBlock(OffsetPacketsInOOO, MaskOOO, $4, $3.comp, FUNC_NONE, NULL); 
+				$$.self = NewBlock(OffsetPacketsInOOO, MaskOOO, $5, $4.comp, FUNC_NONE, NULL); 
 				break;
+#ifdef HAVE_NPROBE_OUT_EXTENSIONS
 			case DIR_OUT: 
-				$$.self = NewBlock(OffsetPacketsOutOOO, MaskOOO, $4, $3.comp, FUNC_NONE, NULL); 
+				$$.self = NewBlock(OffsetPacketsOutOOO, MaskOutOOO, $5, $4.comp, FUNC_NONE, NULL); 
 				break;
+#endif
 			default:
 				yyerror("This token is not expected here!");
 				YYABORT;
 		} // End of switch
-
 	}
 		
 	| CLIENT LATENCY comp NUMBER { 	

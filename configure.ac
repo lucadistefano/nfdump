@@ -29,6 +29,8 @@ AC_ARG_ENABLE(devel,
 # Which way is better?
 if test "${enable_devel}" = "yes" ; then
 	CFLAGS="$CFLAGS -O0 -DDEVEL"
+	CFLAGS="$CFLAGS -DYYDEBUG"
+	AM_CONDITIONAL(DEVEL, true)	
 cat >>config.h <<_ACEOF
 #define dbg_printf(...) printf(__VA_ARGS__)
 _ACEOF
@@ -65,6 +67,16 @@ AC_ARG_ENABLE(fixtimebug,
 
 if test "${enable_fixtimebug}" = "yes" ; then
 	CFLAGS="$CFLAGS -DFIXTIMEBUG"
+fi
+
+AC_ARG_ENABLE(nprobe,
+[  --enable-nprobe       enable code for handle some nprobe extensions; default is NO])
+
+if test "${enable_nprobe}" = "yes" ; then
+	AC_DEFINE(HAVE_NPROBE_EXTENSIONS, 1, handle some nprobe extensions)
+	AC_DEFINE(HAVE_NPROBE_OUT_EXTENSIONS, 1, handle some nprobe extensions)
+else
+	AC_DEFINE(DEPRECATED_NPROBE_LATENCY, 1, define if socket address structures have length fields)
 fi
 
 AC_PROG_YACC

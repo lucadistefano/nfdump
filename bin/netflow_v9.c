@@ -153,13 +153,6 @@ typedef struct input_translation_s {
 	uint32_t	received_offset;
 	uint32_t	router_ip_offset;
 
-	uint64_t    in_retr_packets;
-	uint64_t    out_retr_packets;
-	uint64_t    in_retr_bytes;
-	uint64_t    out_retr_bytes;
-	uint64_t    in_ooo_packets;
-	uint64_t    out_ooo_packets;
-
 	// extension map infos
 	uint32_t	extension_map_changed;		// map changed while refreshing
 	extension_info_t 	 extension_info;	// the nfcap extension map, reflecting this template
@@ -363,29 +356,35 @@ static struct v9_element_map_s {
 	{ NF9_NPROBE_CLIENT_NW_DELAY_SEC, 	 "NPROBE client lat sec",	_4bytes, _8bytes, move_slatency, nop, EX_LATENCY },
 	{ NF9_NPROBE_SERVER_NW_DELAY_SEC, 	 "NPROBE server lat sec",	_4bytes, _8bytes, move_slatency, nop, EX_LATENCY },
 	{ NF9_NPROBE_APPL_LATENCY_SEC, 	 	 "NPROBE appl lat sec",		_4bytes, _8bytes, move_slatency, nop, EX_LATENCY },
-#else
-	{ NF9_NPROBE_CLIENT_NW_LATENCY_MS,		"NPROBE client lat msec",	_4bytes, _4bytes, move32, zero32, EX_NP_LATENCY },
-	{ NF9_NPROBE_SERVER_NW_LATENCY_MS,		"NPROBE server lat msec",	_4bytes, _4bytes, move32, zero32, EX_NP_LATENCY },
-	{ NF9_NPROBE_APPL_LATENCY_MS,			"NPROBE appl lat msec",		_4bytes, _4bytes, move32, zero32, EX_NP_LATENCY },
 #endif
-
-	// nProbe extensions
-	{ NF9_NPROBE_RETRANSMITTED_IN_BYTES,	"NPROBE retransmitted bytes in",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
-//	{ NF9_NPROBE_RETRANSMITTED_IN_BYTES,	"NPROBE retransmitted bytes in",	_8bytes,  _8bytes, move64_sampling, zero64, EX_NP_RETRANSMISSION },
-	{ NF9_NPROBE_RETRANSMITTED_OUT_BYTES,	"NPROBE retransmitted bytes out",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
-//	{ NF9_NPROBE_RETRANSMITTED_OUT_BYTES,	"NPROBE retransmitted bytes out",	_8bytes,  _8bytes, move64_sampling, zero64, EX_NP_RETRANSMISSION },
-//
-	{ NF9_NPROBE_RETRANSMITTED_IN_PKTS,		"NPROBE retransmitted packets in",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
-//	{ NF9_NPROBE_RETRANSMITTED_IN_PKTS,		"NPROBE retransmitted packets in",	_8bytes,  _8bytes, move64_sampling, zero64, EX_NP_RETRANSMISSION },
-	{ NF9_NPROBE_RETRANSMITTED_OUT_PKTS,	"NPROBE retransmitted packets out",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
-//	{ NF9_NPROBE_RETRANSMITTED_OUT_PKTS,	"NPROBE retransmitted packets out",	_8bytes,  _8bytes, move64_sampling, zero64, EX_NP_RETRANSMISSION },
-//
-	{ NF9_NPROBE_OOORDER_IN_PKTS,			"NPROBE out of order in pkts",		_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_OOO },
-//	{ NF9_NPROBE_OOORDER_IN_PKTS,			"NPROBE out of order in pkts",		_8bytes,  _8bytes, move64_sampling, zero64, EX_NP_OOO },
-	{ NF9_NPROBE_OOORDER_OUT_PKTS,			"NPROBE out of order out pkts",		_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_OOO },
-//	{ NF9_NPROBE_OOORDER_OUT_PKTS,			"NPROBE out of order out pkts",		_8bytes,  _8bytes, move64_sampling, zero64, EX_NP_OOO },
+#ifdef HAVE_NPROBE_EXTENSIONS
+	{ NF9_NPROBE_CLIENT_NW_LATENCY_MS,		"NPROBE client lat msec",			_4bytes, _4bytes, move32, zero32, EX_NP_LATENCY },
+	{ NF9_NPROBE_SERVER_NW_LATENCY_MS,		"NPROBE server lat msec",			_4bytes, _4bytes, move32, zero32, EX_NP_LATENCY },
+	{ NF9_NPROBE_APPL_LATENCY_MS,			"NPROBE appl lat msec",				_4bytes, _4bytes, move32, zero32, EX_NP_LATENCY },
 
 	{ NF9_NPROBE_L7_PROTO,					"NPROBE l7 proto id",				_2bytes, _4bytes, move16, zero32, EX_NP_L7_PROTO },
+
+	//TODO use 32bits instead of 64??
+	//TODO sampling??
+	{ NF9_NPROBE_RETRANSMITTED_IN_BYTES,	"NPROBE retransmitted bytes in",	_4bytes,  _8bytes, move32, zero64, EX_NP_RETRANSMISSION },
+	{ NF9_NPROBE_RETRANSMITTED_IN_PKTS,		"NPROBE retransmitted packets in",	_4bytes,  _8bytes, move32, zero64, EX_NP_RETRANSMISSION },
+	{ NF9_NPROBE_OOORDER_IN_PKTS,			"NPROBE out of order in pkts",		_4bytes,  _8bytes, move32, zero64, EX_NP_OOO },
+
+//	{ NF9_NPROBE_RETRANSMITTED_IN_BYTES,	"NPROBE retransmitted bytes in",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
+//	{ NF9_NPROBE_RETRANSMITTED_IN_PKTS,		"NPROBE retransmitted packets in",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
+//	{ NF9_NPROBE_OOORDER_IN_PKTS,			"NPROBE out of order in pkts",		_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_OOO },
+
+#ifdef 	HAVE_NPROBE_OUT_EXTENSIONS
+	{ NF9_NPROBE_RETRANSMITTED_OUT_BYTES,	"NPROBE retransmitted bytes out",	_4bytes,  _8bytes, move32, zero64, EX_NP_RETRANSMISSION },
+	{ NF9_NPROBE_RETRANSMITTED_OUT_PKTS,	"NPROBE retransmitted packets out",	_4bytes,  _8bytes, move32, zero64, EX_NP_RETRANSMISSION },
+	{ NF9_NPROBE_OOORDER_OUT_PKTS,			"NPROBE out of order out pkts",		_4bytes,  _8bytes, move32, zero64, EX_NP_OOO },
+
+//	{ NF9_NPROBE_RETRANSMITTED_OUT_BYTES,	"NPROBE retransmitted bytes out",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
+//	{ NF9_NPROBE_RETRANSMITTED_OUT_PKTS,	"NPROBE retransmitted packets out",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
+//	{ NF9_NPROBE_OOORDER_OUT_PKTS,			"NPROBE out of order out pkts",		_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_OOO },
+#endif
+
+#endif
 
 	{0, "NULL",	0, 0}
 };
@@ -1010,28 +1009,27 @@ size_t				size_required;
 				PushSequence( table, NF9_NPROBE_APPL_LATENCY_USEC, &offset, NULL, 0);
 
 				} break;
-#else
+#endif
+#ifdef HAVE_NPROBE_EXTENSIONS
 			case EX_NP_LATENCY: {
 				PushSequence( table, NF9_NPROBE_CLIENT_NW_LATENCY_MS, &offset, NULL, 0);
 				PushSequence( table, NF9_NPROBE_SERVER_NW_LATENCY_MS, &offset, NULL, 0);
 				PushSequence( table, NF9_NPROBE_APPL_LATENCY_MS, &offset, NULL, 0);
 				} break;
-#endif
 			case EX_NP_RETRANSMISSION: {
-				PushSequence( table, NF9_NPROBE_RETRANSMITTED_IN_BYTES, &offset, &table->in_retr_bytes, 0);
-				PushSequence( table, NF9_NPROBE_RETRANSMITTED_OUT_BYTES, &offset, &table->out_retr_bytes, 0);
-				PushSequence( table, NF9_NPROBE_RETRANSMITTED_IN_PKTS, &offset, &table->in_retr_packets, 0);
-				PushSequence( table, NF9_NPROBE_RETRANSMITTED_OUT_PKTS, &offset, &table->out_retr_packets, 0);
+				PushSequence( table, NF9_NPROBE_RETRANSMITTED_IN_BYTES, &offset, NULL, 0);
+				PushSequence( table, NF9_NPROBE_RETRANSMITTED_OUT_BYTES, &offset, NULL, 0);
+				PushSequence( table, NF9_NPROBE_RETRANSMITTED_IN_PKTS, &offset, NULL, 0);
+				PushSequence( table, NF9_NPROBE_RETRANSMITTED_OUT_PKTS, &offset, NULL, 0);
 			} break;
 			case EX_NP_OOO: {
-				PushSequence( table, NF9_NPROBE_OOORDER_IN_PKTS, &offset, &table->in_ooo_packets, 0);
-				PushSequence( table, NF9_NPROBE_OOORDER_OUT_PKTS, &offset, &table->out_ooo_packets, 0);
+				PushSequence( table, NF9_NPROBE_OOORDER_IN_PKTS, &offset, NULL, 0);
+				PushSequence( table, NF9_NPROBE_OOORDER_OUT_PKTS, &offset, NULL, 0);
 			} break;
 			case EX_NP_L7_PROTO: {
-//				dbg_printf("L7: Offset: %u, olen: %u\n", offset, 4 );
 				PushSequence( table, NF9_NPROBE_L7_PROTO, &offset, NULL, 0);
 			} break;
-
+#endif
 			case EX_BGPADJ:
 				PushSequence( table, NF9_BGP_ADJ_NEXT_AS, &offset, NULL, 0);
 				PushSequence( table, NF9_BGP_ADJ_PREV_AS, &offset, NULL, 0);

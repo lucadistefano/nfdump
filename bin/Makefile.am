@@ -7,6 +7,10 @@ EXTRA_DIST = applybits_inline.c nffile_inline.c collector_inline.c inline.c nfdu
 check_PROGRAMMS = test.sh
 TESTS = nftest test.sh
 
+if DEVEL
+bin_PROGRAMS += nftest nfgen nfreader
+endif
+
 if SFLOW
 bin_PROGRAMS += sfcapd
 endif

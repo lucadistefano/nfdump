@@ -289,17 +289,21 @@ nffile_t			*nffile;
 	record.client_nw_delay_usec = 2;
 	record.server_nw_delay_usec = 22;
 	record.appl_latency_usec = 222;
-#else
+#endif
+#ifdef HAVE_NPROBE_EXTENSIONS
 	record.client_nw_delay_msec = 2;
 	record.server_nw_delay_msec = 22;
 	record.appl_latency_msec = 222;
-#endif
+
 	record.in_retransmission_bytes = 11;
-	record.out_retransmission_bytes = 12;
 	record.in_retransmission_pkts = 22;
-	record.out_retransmission_pkts = 23;
 	record.in_ooo_pkts = 33;
+#ifdef 	HAVE_NPROBE_OUT_EXTENSIONS
+	record.out_retransmission_bytes = 12;
+	record.out_retransmission_pkts = 23;
 	record.out_ooo_pkts = 34;
+#endif
+#endif
 
 	record.bgpNextAdjacentAS = 45804;
 	record.bgpPrevAdjacentAS = 32775;

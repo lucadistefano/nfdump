@@ -216,21 +216,24 @@ static void String_ClientLatency(master_record_t *r, char *string);
 static void String_ServerLatency(master_record_t *r, char *string);
 
 static void String_AppLatency(master_record_t *r, char *string);
-#else
+#endif
+#ifdef HAVE_NPROBE_EXTENSIONS
 static void String_ClientLatencyMs(master_record_t *r, char *string);
 static void String_ServerLatencyMs(master_record_t *r, char *string);
 static void String_AppLatencyMs(master_record_t *r, char *string);
-#endif
 
 static void String_L7Proto(master_record_t *r, char *string);
 static void String_L7ProtoID(master_record_t *r, char *string);
 
 static void String_Retransmission_InBytes(master_record_t *r, char *string);
-static void String_Retransmission_OutBytes(master_record_t *r, char *string);
 static void String_Retransmission_InPackets(master_record_t *r, char *string);
-static void String_Retransmission_OutPackets(master_record_t *r, char *string);
 static void String_OOO_InPackets(master_record_t *r, char *string);
+#ifdef 	HAVE_NPROBE_OUT_EXTENSIONS
+static void String_Retransmission_OutBytes(master_record_t *r, char *string);
+static void String_Retransmission_OutPackets(master_record_t *r, char *string);
 static void String_OOO_OutPackets(master_record_t *r, char *string);
+#endif
+#endif
 
 static void String_bps(master_record_t *r, char *string);
 
@@ -398,20 +401,30 @@ static struct format_token_list_s {
 	{ "%cl", 0, "C Latency", 	 		 	String_ClientLatency },	// client latency
 	{ "%sl", 0, "S latency", 	 		 	String_ServerLatency },	// server latency
 	{ "%al", 0, "A latency", 			 	String_AppLatency },	// app latency
-#else
+#endif
+#ifdef HAVE_NPROBE_EXTENSIONS
 	{ "%cl", 	0, "C Latency", 	 		 			String_ClientLatencyMs },	// client latency
 	{ "%sl", 	0, "S latency", 	 		 			String_ServerLatencyMs },	// server latency
 	{ "%al", 	0, "A latency", 			 			String_AppLatencyMs },		// app latency
-#endif
-	// nprobe
-	{ "%irbyt", 0, "Retransmission In Bytes", 			String_Retransmission_InBytes },
-	{ "%orbyt", 0, "Retransmission Out Bytes", 			String_Retransmission_OutBytes },
-	{ "%irpkt", 0, "Retransmission In Packets", 		String_Retransmission_InPackets },
-	{ "%orpkt", 0, "Retransmission Out Packets", 		String_Retransmission_OutPackets },
-	{ "%iopkt", 0, "OOO In Packets", 					String_OOO_InPackets },
-	{ "%oopkt", 0, "OOO Out Packets", 					String_OOO_OutPackets },
+
 	{ "%l7p",	0, "L7 proto", 			 				String_L7Proto },			// l7 proto name
 	{ "%l7pid",	0, "L7 proto id",		 				String_L7ProtoID },			// l7 proto id
+
+	{ "%rbyt", 0, "Retransmission In Bytes", 			String_Retransmission_InBytes },
+	{ "%rpkt", 0, "Retransmission In Packets", 			String_Retransmission_InPackets },
+	{ "%opkt", 0, "OOO In Packets", 					String_OOO_InPackets },
+
+#ifdef HAVE_NPROBE_OUT_EXTENSIONS
+	{ "%irbyt", 0, "Retransmission In Bytes", 			String_Retransmission_InBytes },
+	{ "%irpkt", 0, "Retransmission In Packets", 		String_Retransmission_InPackets },
+	{ "%iopkt", 0, "OOO In Packets", 					String_OOO_InPackets },
+
+	{ "%orbyt", 0, "Retransmission Out Bytes", 			String_Retransmission_OutBytes },
+	{ "%orpkt", 0, "Retransmission Out Packets", 		String_Retransmission_OutPackets },
+	{ "%oopkt", 0, "OOO Out Packets", 					String_OOO_OutPackets },
+#endif
+
+#endif
 
 	{ NULL, 0, NULL, NULL }
 };
@@ -1356,17 +1369,15 @@ extension_map_t	*extension_map = r->map_ref;
 			case EX_NP_RETRANSMISSION: {
 				snprintf(_s, slen-1,
 "  in  retr pkt =         %6llu ms\n"
-"  out retr pkt =         %6llu ms\n"
 "  in  retr byt =         %6llu ms\n"
-"  out retr byt =         %6llu ms\n"
-, (long long unsigned)r->in_retransmission_pkts, (long long unsigned)r->out_retransmission_pkts
-, (long long unsigned)r->in_retransmission_bytes, (long long unsigned)r->out_retransmission_bytes);
+, (long long unsigned)r->in_retransmission_pkts, (long long unsigned)r->in_retransmission_bytes
+);
 			} break;
 			case EX_NP_OOO: {
 				snprintf(_s, slen-1,
 "  in  ooo pkt  =         %6llu ms\n"
-"  out ooo pkt  =         %6llu ms\n"
-, (long long unsigned)r->in_ooo_pkts, (long long unsigned)r->out_ooo_pkts);
+, (long long unsigned)r->in_ooo_pkts
+  );
 			} break;
 			case EX_NP_L7_PROTO: {
 				char l7p[L7_STR_LEN];
@@ -1375,7 +1386,21 @@ extension_map_t	*extension_map = r->map_ref;
 "  l7 proto     = %s [%6u]\n"
 				,l7p , r->l7_proto_id);
 			} break;
-
+#ifdef HAVE_NPROBE_OUT_EXTENSIONS
+			case EX_NP_OUT_RETRANSMISSION: {
+				snprintf(_s, slen-1,
+"  out retr pkt =         %6llu ms\n"
+"  out retr byt =         %6llu ms\n"
+, (long long unsigned)r->out_retransmission_pkts, (long long unsigned)r->out_retransmission_bytes
+);
+			} break;
+			case EX_NP_OUT_OOO: {
+				snprintf(_s, slen-1,
+"  out ooo pkt  =         %6llu ms\n"
+, (long long unsigned)r->out_ooo_pkts
+  );
+			} break;
+#endif
 			case EX_ROUTER_ID:
 				snprintf(_s, slen-1,
 "  engine type  =             %5u\n"
@@ -1828,40 +1853,8 @@ master_record_t *r = (master_record_t *)record;
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
 	} 
-#else
-	// EX_NP_LATENCY:
-	{
-		snprintf(_s, slen-1,
-				",%6lu,%6lu,%6lu",
-				r->client_nw_delay_msec, r->server_nw_delay_msec, r->appl_latency_msec);
-
-		_slen = strlen(data_string);
-		_s = data_string + _slen;
-		slen = STRINGSIZE - _slen;
-	}
 #endif
-
-	// EX_NP_RETRANSMISSION:
-	{
-		snprintf(_s, slen-1,
-			",%6llu,%6llu,%6llu,%6llu",
-			(unsigned long long)r->in_retransmission_pkts, (unsigned long long)r->out_retransmission_pkts,
-			(unsigned long long)r->in_retransmission_bytes, (unsigned long long)r->out_retransmission_bytes);
-
-		_slen = strlen(data_string);
-		_s = data_string + _slen;
-		slen = STRINGSIZE - _slen;
-	}
-	// EX_NP_OOO:
-	{
-		snprintf(_s, slen-1,
-				",%6llu,%6llu",
-				(unsigned long long)r->in_ooo_pkts, (unsigned long long)r->out_ooo_pkts);
-
-		_slen = strlen(data_string);
-		_s = data_string + _slen;
-		slen = STRINGSIZE - _slen;
-	}
+#ifdef HAVE_NPROBE_EXTENSIONS
 	// EX_NP_L7_PROTO:
 	{
 		char l7p[L7_STR_LEN];
@@ -1872,9 +1865,62 @@ master_record_t *r = (master_record_t *)record;
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
 	}
-	// num aggregated flows
+	// EX_NP_LATENCY:
 	{
-		snprintf(_s, slen-1, ",%6u", r->aggr_flows);
+		snprintf(_s, slen-1,
+				",%6lu,%6lu,%6lu",
+				r->client_nw_delay_msec, r->server_nw_delay_msec, r->appl_latency_msec);
+
+		_slen = strlen(data_string);
+		_s = data_string + _slen;
+		slen = STRINGSIZE - _slen;
+	}
+	// EX_NP_RETRANSMISSION:
+	{
+		snprintf(_s, slen-1,
+			",%6llu,%6llu",
+			(unsigned long long)r->in_retransmission_pkts, (unsigned long long)r->in_retransmission_bytes);
+
+		_slen = strlen(data_string);
+		_s = data_string + _slen;
+		slen = STRINGSIZE - _slen;
+	}
+	// EX_NP_OOO:
+	{
+		snprintf(_s, slen-1,
+				",%6llu",
+				(unsigned long long)r->in_ooo_pkts);
+
+		_slen = strlen(data_string);
+		_s = data_string + _slen;
+		slen = STRINGSIZE - _slen;
+	}
+#ifdef HAVE_NPROBE_OUT_EXTENSIONS
+	// EX_NP_OUT_RETRANSMISSION:
+	{
+		snprintf(_s, slen-1,
+			",%6llu,%6llu",
+			(unsigned long long)r->out_retransmission_pkts, (unsigned long long)r->out_retransmission_bytes);
+
+		_slen = strlen(data_string);
+		_s = data_string + _slen;
+		slen = STRINGSIZE - _slen;
+	}
+	// EX_NP_OUT_OOO:
+	{
+		snprintf(_s, slen-1,
+				",%6llu",
+				(unsigned long long)r->out_ooo_pkts);
+
+		_slen = strlen(data_string);
+		_s = data_string + _slen;
+		slen = STRINGSIZE - _slen;
+	}
+#endif
+#endif
+	// EX_AGGR_FLOWS_4/EX_AGGR_FLOWS_8
+	{
+		snprintf(_s, slen-1, ",%6lu", r->aggr_flows);
 
 		_slen = strlen(data_string);
 		_s = data_string + _slen;
@@ -2937,7 +2983,8 @@ double latency;
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_AppLatency
-#else
+#endif
+#ifdef HAVE_NPROBE_EXTENSIONS
 static void String_ClientLatencyMs(master_record_t *r, char *string) {
 	snprintf(string, MAX_STRING_LENGTH-1 ,"%6lu", r->client_nw_delay_msec);
 	string[MAX_STRING_LENGTH-1] = '\0';
@@ -2955,58 +3002,6 @@ static void String_AppLatencyMs(master_record_t *r, char *string) {
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_AppLatency
-#endif
-
-static void String_Retransmission_InBytes(master_record_t *r, char *string) {
-	char s[NUMBER_STRING_SIZE];
-
-	format_number(r->in_retransmission_bytes, s, scale, FIXED_WIDTH);
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
-	string[MAX_STRING_LENGTH-1] = '\0';
-
-} // End of String_Retransmission_InBytes
-static void String_Retransmission_OutBytes(master_record_t *r, char *string) {
-	char s[NUMBER_STRING_SIZE];
-
-	format_number(r->out_retransmission_bytes, s, scale, FIXED_WIDTH);
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
-	string[MAX_STRING_LENGTH-1] = '\0';
-
-} // End of String_Retransmission_OutBytes
-static void String_Retransmission_InPackets(master_record_t *r, char *string) {
-	char s[NUMBER_STRING_SIZE];
-
-	format_number(r->in_retransmission_pkts, s, scale, FIXED_WIDTH);
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
-	string[MAX_STRING_LENGTH-1] = '\0';
-
-} // End of String_Retransmission_InPackets
-static void String_Retransmission_OutPackets(master_record_t *r, char *string) {
-	char s[NUMBER_STRING_SIZE];
-
-	format_number(r->out_retransmission_pkts, s, scale, FIXED_WIDTH);
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
-	string[MAX_STRING_LENGTH-1] = '\0';
-
-} // End of String_Retransmission_OutPackets
-static void String_OOO_InPackets(master_record_t *r, char *string) {
-	char s[NUMBER_STRING_SIZE];
-
-	format_number(r->in_ooo_pkts, s, scale, FIXED_WIDTH);
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
-	string[MAX_STRING_LENGTH-1] = '\0';
-
-} // End of String_OOO_InPackets
-
-static void String_OOO_OutPackets(master_record_t *r, char *string) {
-	char s[NUMBER_STRING_SIZE];
-
-	format_number(r->out_ooo_pkts, s, scale, FIXED_WIDTH);
-	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
-	string[MAX_STRING_LENGTH-1] = '\0';
-
-} // End of String_OOO_OutPackets
-
 static void String_L7Proto(master_record_t *r, char *string) {
 	// TODO resolve otf the mapping proto id <-> proto name
 	char s[L7_STR_LEN]; //	char s[MAX_L7PROTO_STR];
@@ -3015,12 +3010,62 @@ static void String_L7Proto(master_record_t *r, char *string) {
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_L7Proto
-
 static void String_L7ProtoID(master_record_t *r, char *string) {
 	snprintf(string, MAX_STRING_LENGTH-1 ,"%6u", r->l7_proto_id);
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_L7ProtoID
+static void String_Retransmission_InBytes(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->in_retransmission_bytes, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_Retransmission_InBytes
+static void String_Retransmission_InPackets(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->in_retransmission_pkts, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_Retransmission_InPackets
+static void String_OOO_InPackets(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->in_ooo_pkts, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_OOO_InPackets
+#ifdef 	HAVE_NPROBE_OUT_EXTENSIONS
+static void String_Retransmission_OutBytes(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->out_retransmission_bytes, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_Retransmission_OutBytes
+static void String_Retransmission_OutPackets(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->out_retransmission_pkts, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_Retransmission_OutPackets
+static void String_OOO_OutPackets(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->out_ooo_pkts, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_OOO_OutPackets
+#endif
+#endif
 
 static void String_bps(master_record_t *r, char *string) {
 uint64_t	bps;
