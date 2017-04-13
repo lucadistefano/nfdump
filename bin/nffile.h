@@ -1223,6 +1223,7 @@ typedef struct tpl_ext_l7_appl_s {
 typedef struct tpl_ext_retransmission_s {
 	uint32_t	retransmitted_in_pkts;
 	uint32_t	retransmitted_in_bytes;
+	uint32_t	ooo_in_pkts;
 	uint8_t		data[4];	// points to further data
 } tpl_ext_retransmission_t;
 
@@ -1232,11 +1233,14 @@ typedef struct tpl_ext_retransmission_s {
  * |  0 |                                                           |                                                           |
  * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
  */
-#define EX_NP_OOO 53
+#define EX_NP_CONGESTION 53
 typedef struct tpl_ext_ooo_s {
-	uint32_t	ooo_in_pkts;
+	uint32_t congestion_experienced;
+	uint32_t win_zero;
+	uint32_t client_stalled;
+	uint32_t server_stalled;
 	uint8_t		data[4];	// points to further data
-} tpl_ext_ooo_t;
+} tpl_ext_congestion_t;
 
 
 /*
@@ -1252,6 +1256,7 @@ typedef struct tpl_ext_out_retransmissions {
 	uint8_t		data[4];	// points to further data
 } tpl_ext_out_retransmission_t;
 
+#ifdef HAVE_NPROBE_OUT_EXTENSIONS
 /*
  * out out of order packets
  * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
@@ -1263,6 +1268,7 @@ typedef struct tpl_ext_out_ooo_s {
 	uint32_t	ooo_out_pkts;
 	uint8_t		data[4];	// points to further data
 } tpl_ext_out_ooo_t;
+#endif
 
 #define EX_NPROBE_RESERVED_3 56
 #define EX_NPROBE_RESERVED_4 57
@@ -2209,6 +2215,11 @@ typedef struct master_record_s {
 #	define MaskL7Proto		0x00000000FFFFFFFFLL
 #   define ShiftL7Proto     0
 #endif
+
+	uint64_t congestion_experienced;
+	uint64_t win_zero;
+	uint64_t client_stalled;
+	uint64_t server_stalled;
 
 #ifdef	HAVE_NPROBE_OUT_EXTENSIONS
 	uint64_t	out_retransmission_pkts;

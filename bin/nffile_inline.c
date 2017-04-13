@@ -381,11 +381,15 @@ void		*p = (void *)input_record;
 				tpl_ext_retransmission_t *tpl = (tpl_ext_retransmission_t *)p;
 				output_record->in_retransmission_bytes = tpl->retransmitted_in_bytes;
 				output_record->in_retransmission_pkts = tpl->retransmitted_in_pkts;
+				output_record->in_ooo_pkts = tpl->ooo_in_pkts;
 				p = (void *)tpl->data;
 			} break;
-			case EX_NP_OOO:{
-				tpl_ext_ooo_t *tpl = (tpl_ext_ooo_t *)p;
-				output_record->in_ooo_pkts = tpl->ooo_in_pkts;
+			case EX_NP_CONGESTION:{
+				tpl_ext_congestion_t *tpl = (tpl_ext_congestion_t *)p;
+				output_record->client_stalled = tpl->client_stalled;
+				output_record->server_stalled = tpl->server_stalled;
+				output_record->win_zero = tpl->win_zero;
+				output_record->congestion_experienced = tpl->congestion_experienced;
 				p = (void *)tpl->data;
 			} break;
 			case EX_NP_L7_PROTO:{

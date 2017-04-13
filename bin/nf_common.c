@@ -228,6 +228,12 @@ static void String_L7ProtoID(master_record_t *r, char *string);
 static void String_Retransmission_InBytes(master_record_t *r, char *string);
 static void String_Retransmission_InPackets(master_record_t *r, char *string);
 static void String_OOO_InPackets(master_record_t *r, char *string);
+
+static void String_CE_InPackets(master_record_t *r, char *string);
+static void String_ZW_InPackets(master_record_t *r, char *string);
+static void String_CliStalled_Ms(master_record_t *r, char *string);
+static void String_SrvStalled_Ms(master_record_t *r, char *string);
+
 #ifdef 	HAVE_NPROBE_OUT_EXTENSIONS
 static void String_Retransmission_OutBytes(master_record_t *r, char *string);
 static void String_Retransmission_OutPackets(master_record_t *r, char *string);
@@ -413,6 +419,11 @@ static struct format_token_list_s {
 	{ "%rbyt", 0, "Retransmission In Bytes", 			String_Retransmission_InBytes },
 	{ "%rpkt", 0, "Retransmission In Packets", 			String_Retransmission_InPackets },
 	{ "%opkt", 0, "OOO In Packets", 					String_OOO_InPackets },
+
+	{ "%cepkt", 0, "OOO In Packets", 					String_CE_InPackets },
+	{ "%zwkt",  0, "OOO In Packets", 					String_ZW_InPackets },
+	{ "%cst",   0, "OOO In Packets", 					String_CliStalled_Ms },
+	{ "%sst",   0, "OOO In Packets", 					String_SrvStalled_Ms },
 
 #ifdef HAVE_NPROBE_OUT_EXTENSIONS
 	{ "%irbyt", 0, "Retransmission In Bytes", 			String_Retransmission_InBytes },
@@ -1370,14 +1381,20 @@ extension_map_t	*extension_map = r->map_ref;
 				snprintf(_s, slen-1,
 "  in  retr pkt =         %6llu ms\n"
 "  in  retr byt =         %6llu ms\n"
-, (long long unsigned)r->in_retransmission_pkts, (long long unsigned)r->in_retransmission_bytes
+						"  in  ooo pkt  =         %6llu ms\n"
+, (long long unsigned)r->in_retransmission_pkts, (long long unsigned)r->in_retransmission_bytes, (long long unsigned)r->in_ooo_pkts
 );
 			} break;
-			case EX_NP_OOO: {
+			case EX_NP_CONGESTION: {
 				snprintf(_s, slen-1,
-"  in  ooo pkt  =         %6llu ms\n"
-, (long long unsigned)r->in_ooo_pkts
+"  in  ce pkt  =         %6llu ms\n"
+"  in  zero win pkt  =         %6llu ms\n"
+"  in  cli stalled ms  =         %6llu ms\n"
+"  in  srv stalled ms  =         %6llu ms\n",
+		(unsigned long long)r->congestion_experienced,(unsigned long long)r->win_zero,
+		(unsigned long long)r->client_stalled,( unsigned long long)r->server_stalled
   );
+
 			} break;
 			case EX_NP_L7_PROTO: {
 				char l7p[L7_STR_LEN];
@@ -1878,18 +1895,21 @@ master_record_t *r = (master_record_t *)record;
 	// EX_NP_RETRANSMISSION:
 	{
 		snprintf(_s, slen-1,
-			",%6llu,%6llu",
-			(unsigned long long)r->in_retransmission_pkts, (unsigned long long)r->in_retransmission_bytes);
+			",%6llu,%6llu,%6llu",
+			(unsigned long long)r->in_retransmission_pkts, (unsigned long long)r->in_retransmission_bytes,
+			(unsigned long long)r->in_ooo_pkts);
 
 		_slen = strlen(data_string);
 		_s = data_string + _slen;
 		slen = STRINGSIZE - _slen;
 	}
-	// EX_NP_OOO:
+	// EX_NP_CONGESTION:
 	{
 		snprintf(_s, slen-1,
-				",%6llu",
-				(unsigned long long)r->in_ooo_pkts);
+				",%6llu,%6llu,%6llu,%6llu",
+				(unsigned long long)r->client_stalled,( unsigned long long)r->server_stalled,(unsigned long long)r->win_zero,
+				(unsigned long long)r->congestion_experienced
+				);
 
 		_slen = strlen(data_string);
 		_s = data_string + _slen;
@@ -3039,6 +3059,34 @@ static void String_OOO_InPackets(master_record_t *r, char *string) {
 	string[MAX_STRING_LENGTH-1] = '\0';
 
 } // End of String_OOO_InPackets
+static void String_CE_InPackets(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->congestion_experienced, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_CE_InPackets
+static void String_ZW_InPackets(master_record_t *r, char *string) {
+	char s[NUMBER_STRING_SIZE];
+
+	format_number(r->win_zero, s, scale, FIXED_WIDTH);
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%8s", s);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_ZW_InPackets
+static void String_CliStalled_Ms(master_record_t *r, char *string) {
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6lu", r->client_stalled);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_CliStalled_Ms
+static void String_SrvStalled_Ms(master_record_t *r, char *string) {
+	snprintf(string, MAX_STRING_LENGTH-1 ,"%6lu", r->server_stalled);
+	string[MAX_STRING_LENGTH-1] = '\0';
+
+} // End of String_SrvStalled_Ms
+
+
 #ifdef 	HAVE_NPROBE_OUT_EXTENSIONS
 static void String_Retransmission_OutBytes(master_record_t *r, char *string) {
 	char s[NUMBER_STRING_SIZE];
