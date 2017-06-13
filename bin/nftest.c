@@ -1023,9 +1023,13 @@ void *p;
 
 
 	flow_record.in_ooo_pkts = 3333;
-	yydebug = 1;
+//	yydebug = 1;
+	flow_record.in_retransmission_pkts = 1111;
+	ret = check_filter_block("retransmitted > 1110", &flow_record, 1);
+
 //	ret = check_filter_block("outoforder in packets == 3333", &flow_record, 1);
-	ret = check_filter_block("in outoforder packets == 3333", &flow_record, 1);
+//	ret = check_filter_block("in outoforder packets == 3333", &flow_record, 1);
+//	yydebug = 0;
 	ret = check_filter_block("in ooo == 3333", &flow_record, 1);
 	ret = check_filter_block("in ooo == 3", &flow_record, 0);
 	ret = check_filter_block("in ooo > 3", &flow_record, 1);
@@ -1037,8 +1041,7 @@ void *p;
 	ret = check_filter_block("in retr bytes == 12345", &flow_record, 1);
 	ret = check_filter_block("in retr bytes > 12345", &flow_record, 1);
 	ret = check_filter_block("in retr bytes < 12345", &flow_record, 0);
-//
-//	ret = check_filter_block("in retr packets == 1111", &flow_record, 1);
+	ret = check_filter_block("in retr packets == 1111", &flow_record, 1);
 
 #ifdef 	HAVE_NPROBE_OUT_EXTENSIONS
 	flow_record.out_retransmission_bytes = 56789;

@@ -494,6 +494,20 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 		$$.self = NewBlock(OffsetL7Proto, MaskL7Proto, (proto << ShiftL7Proto)  & MaskL7Proto, CMP_EQ, FUNC_NONE, NULL); 
 	}
 
+	| CLIENT LATENCY comp NUMBER { 	
+		$$.self = NewBlock(OffsetClientLatency, MaskLatency, $4, $3.comp, FUNC_NONE, NULL); 
+	}
+
+	| SERVER LATENCY comp NUMBER { 	
+		$$.self = NewBlock(OffsetServerLatency, MaskLatency, $4, $3.comp, FUNC_NONE, NULL); 
+	}
+
+	| APP LATENCY comp NUMBER { 	
+		$$.self = NewBlock(OffsetAppLatency, MaskLatency, $4, $3.comp, FUNC_NONE, NULL); 
+	}
+
+	
+	
 	| dqual RETRANSMITTED BYTES comp NUMBER {	
 
 		switch ( $1.direction ) {
@@ -536,11 +550,11 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 		switch ( $1.direction ) {
 			case DIR_UNSPEC:
 			case DIR_IN: 
-				$$.self = NewBlock(OffsetPacketsInOOO, MaskOOO, $5, $4.comp, FUNC_NONE, NULL); 
+				$$.self = NewBlock(OffsetPacketsInOOO, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
 				break;
 #ifdef HAVE_NPROBE_OUT_EXTENSIONS
 			case DIR_OUT: 
-				$$.self = NewBlock(OffsetPacketsOutOOO, MaskOutOOO, $5, $4.comp, FUNC_NONE, NULL); 
+				$$.self = NewBlock(OffsetPacketsOutOOO, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
 				break;
 #endif
 			default:
@@ -548,19 +562,7 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 				YYABORT;
 		} // End of switch
 	}
-		
-	| CLIENT LATENCY comp NUMBER { 	
-		$$.self = NewBlock(OffsetClientLatency, MaskLatency, $4, $3.comp, FUNC_NONE, NULL); 
-	}
-
-	| SERVER LATENCY comp NUMBER { 	
-		$$.self = NewBlock(OffsetServerLatency, MaskLatency, $4, $3.comp, FUNC_NONE, NULL); 
-	}
-
-	| APP LATENCY comp NUMBER { 	
-		$$.self = NewBlock(OffsetAppLatency, MaskLatency, $4, $3.comp, FUNC_NONE, NULL); 
-	}
-
+	
 	| SYSID NUMBER { 	
 		if ( $2 > 255 ) {
 			yyerror("Router SysID expected between be 1..255");

@@ -2191,18 +2191,27 @@ typedef struct master_record_s {
 
 	uint64_t	in_retransmission_pkts;
 	uint64_t	in_retransmission_bytes;
+	uint64_t	in_ooo_pkts;
 
 #define RETRANSMISSION_BASE_OFFSET     (offsetof(master_record_t, in_retransmission_pkts) >> 3)
 #   define OffsetPacketsInRetransmission	RETRANSMISSION_BASE_OFFSET
 #   define OffsetBytesInRetransmission		RETRANSMISSION_BASE_OFFSET + 1
+#   define OffsetPacketsInOOO				RETRANSMISSION_BASE_OFFSET+2
 #	define MaskRetransmission		0xFFFFFFFFFFFFFFFFLL
 #   define ShiftRetransmission      0
 
-	uint64_t	in_ooo_pkts;
-#define OOO_BASE_OFFSET     (offsetof(master_record_t, in_ooo_pkts) >> 3)
-#   define OffsetPacketsInOOO	OOO_BASE_OFFSET
-#	define MaskOOO		0xFFFFFFFFFFFFFFFFLL
-#   define ShiftOOO		0
+	uint64_t congestion_experienced;
+	uint64_t win_zero;
+	uint64_t client_stalled;
+	uint64_t server_stalled;
+
+#define CONGESTION_BASE_OFFSET     (offsetof(master_record_t, in_ooo_pkts) >> 3)
+#   define OffsetCongestionExperienced	CONGESTION_BASE_OFFSET
+#   define OffsetZeroWindow				CONGESTION_BASE_OFFSET+1
+#   define OffsetClientStalled			CONGESTION_BASE_OFFSET+2
+#   define OffsetServerStalled			CONGESTION_BASE_OFFSET+3
+#	define MaskCongestion		0xFFFFFFFFFFFFFFFFLL
+#   define ShiftCongestion		0
 
 	uint32_t	l7_proto_id;
 	uint32_t	l7_fill;
@@ -2215,11 +2224,6 @@ typedef struct master_record_s {
 #	define MaskL7Proto		0x00000000FFFFFFFFLL
 #   define ShiftL7Proto     0
 #endif
-
-	uint64_t congestion_experienced;
-	uint64_t win_zero;
-	uint64_t client_stalled;
-	uint64_t server_stalled;
 
 #ifdef	HAVE_NPROBE_OUT_EXTENSIONS
 	uint64_t	out_retransmission_pkts;
