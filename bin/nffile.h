@@ -1114,7 +1114,7 @@ typedef struct tpl_ext_43_s {
 /*
  * nprobe extensions
  */
-//#ifdef DEPRECATED_NPROBE_LATENCY
+
 /*
  * latency extension 
  * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
@@ -1132,7 +1132,6 @@ typedef struct tpl_ext_latency_s {
 	uint64_t	appl_latency_usec;
 	uint8_t		data[4];	// points to further data
 } tpl_ext_latency_t;
-//#endif
 
 /*
  * NEL xlate ports
@@ -1184,22 +1183,6 @@ typedef struct tpl_ext_48_s {
  * nprobe extensions
  */
 
-
-/*
- * latency extension
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- * |  0 |           client_nw_delay_msec (57554)                    |                  server_nw_delay_msec (57557)             |
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- * |  1 |           appl_latency_msec (57558)                       |                                                           |
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- */
-#define EX_NP_LATENCY 50
-typedef struct tpl_ext_latencyms_s {
-	uint32_t	client_nw_delay_msec;
-	uint32_t	server_nw_delay_msec;
-	uint32_t	appl_latency_msec;
-	uint8_t		data[4];	// points to further data
-} tpl_ext_latencyms_t;
 /*
  * l7 proto id
  * +----+--------------+--------------+--------------+--------------+
@@ -1212,71 +1195,6 @@ typedef struct tpl_ext_l7_appl_s {
 	uint16_t	l7_parent_proto_id; // TODO not yet used (fill)
 	uint8_t		data[4];	// points to further data
 } tpl_ext_l7_appl_t;
-
-/*
- * retransmissions
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- * |  0 |                                                           |                                                           |
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- */
-#define EX_NP_RETRANSMISSION 52
-typedef struct tpl_ext_retransmission_s {
-	uint32_t	retransmitted_in_pkts;
-	uint32_t	retransmitted_in_bytes;
-	uint32_t	ooo_in_pkts;
-	uint8_t		data[4];	// points to further data
-} tpl_ext_retransmission_t;
-
-/*
- * out of order packets
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- * |  0 |                                                           |                                                           |
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- */
-#define EX_NP_CONGESTION 53
-typedef struct tpl_ext_ooo_s {
-	uint32_t congestion_experienced;
-	uint32_t win_zero;
-	uint32_t client_stalled;
-	uint32_t server_stalled;
-	uint8_t		data[4];	// points to further data
-} tpl_ext_congestion_t;
-
-
-/*
- * out retransmissions
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- * |  0 |                                                           |                                                           |
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- */
-#define EX_NP_OUT_RETRANSMISSION 54
-typedef struct tpl_ext_out_retransmissions {
-	uint32_t	retransmitted_out_pkts;
-	uint32_t	retransmitted_out_bytes;
-	uint8_t		data[4];	// points to further data
-} tpl_ext_out_retransmission_t;
-
-#ifdef HAVE_NPROBE_OUT_EXTENSIONS
-/*
- * out out of order packets
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- * |  0 |                                                           |                                                           |
- * +----+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
- */
-#define EX_NP_OUT_OOO 55
-typedef struct tpl_ext_out_ooo_s {
-	uint32_t	ooo_out_pkts;
-	uint8_t		data[4];	// points to further data
-} tpl_ext_out_ooo_t;
-#endif
-
-#define EX_NPROBE_RESERVED_3 56
-#define EX_NPROBE_RESERVED_4 57
-#define EX_NPROBE_RESERVED_5 58
-#define EX_NPROBE_RESERVED_6 59
-#define EX_NPROBE_RESERVED_7 60
-#define EX_NPROBE_RESERVED_8 61
-
 #endif
 
 /* 
@@ -1529,14 +1447,7 @@ typedef struct master_record_s {
 #define BYTE_OFFSET_first	12
 
 	uint32_t	first;			// index 1	0x0000'0000'ffff'ffff
-#	define OffsetFirst 	1
-#ifdef WORDS_BIGENDIAN
-#	define MaskFirst  	0x00000000ffffffffLL
-#	define ShiftFirst 	32
-#else
-#	define MaskFirst  	0xffffffff00000000LL
-#	define ShiftFirst 	32
-#endif
+
 	//
 	uint32_t	last;			// index 2	0xffff'ffff'0000'0000
 	uint8_t		fwd_status;		// index 2	0x0000'0000'ff00'0000
@@ -1544,10 +1455,6 @@ typedef struct master_record_s {
 	uint8_t		prot;			// index 2  0x0000'0000'0000'ff00
 	uint8_t		tos;			// index 2  0x0000'0000'0000'00ff
 #ifdef WORDS_BIGENDIAN
-#	define OffsetLast 			2
-#	define MaskLast  			0xffffffff00000000LL
-#	define ShiftLast  			32
-
 #	define OffsetStatus 		2
 #	define MaskStatus  			0x00000000ff000000LL
 #	define ShiftStatus  		24
@@ -1565,10 +1472,6 @@ typedef struct master_record_s {
 #	define ShiftTos  			0
 
 #else
-#	define OffsetLast 			2
-#	define MaskLast  			0x00000000ffffffffLL
-#	define ShiftLast  			0
-
 #	define OffsetStatus 		2
 #	define MaskStatus  			0x000000ff00000000LL
 #	define ShiftStatus  		32
@@ -2161,7 +2064,6 @@ typedef struct master_record_s {
 
 #endif
 
-#ifdef DEPRECATED_NPROBE_LATENCY
 	// nprobe extensions
 	// latency extension
 	uint64_t	client_nw_delay_usec;	// index LATENCY_BASE_OFFSET 0xffff'ffff'ffff'ffff
@@ -2175,44 +2077,7 @@ typedef struct master_record_s {
 #   define MaskLatency          0xFFFFFFFFFFFFFFFFLL
 #   define ShiftLatency         0
 
-#endif /* DEPRECATED_NPROBE_LATENCY */
-
 #ifdef HAVE_NPROBE_EXTENSIONS
-	// latency extension	//TODO change to 32bit
-	uint64_t	client_nw_delay_msec;	// index LATENCY_BASE_OFFSET 0xffff'ffff'ffff'ffff
-	uint64_t	server_nw_delay_msec;	// index LATENCY_BASE_OFFSET + 1 0xffff'ffff'ffff'ffff
-	uint64_t	appl_latency_msec;		// index LATENCY_BASE_OFFSET + 2 0xffff'ffff'ffff'ffff
-#define LATENCY_MS_BASE_OFFSET     (offsetof(master_record_t, client_nw_delay_msec) >> 3)
-#   define OffsetClientLatency  LATENCY_MS_BASE_OFFSET
-#   define OffsetServerLatency  LATENCY_MS_BASE_OFFSET + 1
-#   define OffsetAppLatency     LATENCY_MS_BASE_OFFSET + 2
-#   define MaskLatency          0xFFFFFFFFFFFFFFFFLL
-#   define ShiftLatency         0
-
-	uint64_t	in_retransmission_pkts;
-	uint64_t	in_retransmission_bytes;
-	uint64_t	in_ooo_pkts;
-
-#define RETRANSMISSION_BASE_OFFSET     (offsetof(master_record_t, in_retransmission_pkts) >> 3)
-#   define OffsetPacketsInRetransmission	RETRANSMISSION_BASE_OFFSET
-#   define OffsetBytesInRetransmission		RETRANSMISSION_BASE_OFFSET + 1
-#   define OffsetPacketsInOOO				RETRANSMISSION_BASE_OFFSET+2
-#	define MaskRetransmission		0xFFFFFFFFFFFFFFFFLL
-#   define ShiftRetransmission      0
-
-	uint64_t congestion_experienced;
-	uint64_t win_zero;
-	uint64_t client_stalled;
-	uint64_t server_stalled;
-
-#define CONGESTION_BASE_OFFSET     (offsetof(master_record_t, in_ooo_pkts) >> 3)
-#   define OffsetCongestionExperienced	CONGESTION_BASE_OFFSET
-#   define OffsetZeroWindow				CONGESTION_BASE_OFFSET+1
-#   define OffsetClientStalled			CONGESTION_BASE_OFFSET+2
-#   define OffsetServerStalled			CONGESTION_BASE_OFFSET+3
-#	define MaskCongestion		0xFFFFFFFFFFFFFFFFLL
-#   define ShiftCongestion		0
-
 	uint32_t	l7_proto_id;
 	uint32_t	l7_fill;
 #define L7_BASE_OFFSET     (offsetof(master_record_t, l7_proto_id) >> 3)
@@ -2224,24 +2089,6 @@ typedef struct master_record_s {
 #	define MaskL7Proto		0x00000000FFFFFFFFLL
 #   define ShiftL7Proto     0
 #endif
-
-#ifdef	HAVE_NPROBE_OUT_EXTENSIONS
-	uint64_t	out_retransmission_pkts;
-	uint64_t	out_retransmission_bytes;
-#define RETRANSMISSION_OUT_BASE_OFFSET     (offsetof(master_record_t, in_retransmission_pkts) >> 3)
-#   define OffsetPacketsOutRetransmission	RETRANSMISSION_OUT_BASE_OFFSET
-#   define OffsetBytesOutRetransmission		RETRANSMISSION_OUT_BASE_OFFSET + 1
-#	define MaskOutRetransmission		0xFFFFFFFFFFFFFFFFLL
-#   define ShiftOutRetransmission		0
-
-	uint64_t	out_ooo_pkts;
-#define OOO_OUT_BASE_OFFSET     (offsetof(master_record_t, in_ooo_pkts) >> 3)
-#   define OffsetPacketsOutOOO	OOO_OUT_BASE_OFFSET
-#	define MaskOutOOO		0xFFFFFFFFFFFFFFFFLL
-#   define ShiftOutOOO		0
-
-#endif
-
 
 #endif /* HAVE_NPROBE_EXTENSIONS */
 

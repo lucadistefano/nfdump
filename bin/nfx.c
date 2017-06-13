@@ -134,20 +134,7 @@ extension_descriptor_t extension_descriptor[] = {
 	{ EX_NEL_RESERVED_1,	0,	0, 0,		NULL},
 
 	// NPROBE extensions
-	{ EX_NP_LATENCY,			12,	68, 0,		"nProbe Latencies"},
 	{ EX_NP_L7_PROTO,			4,	65, 0,		"nProbe Layer 7 protocol id"},
-	{ EX_NP_RETRANSMISSION,		12,	66, 0,		"nProbe Retransmissions"},
-	{ EX_NP_CONGESTION,			16,	67, 0,		"nProbe Tcp congestion"},
-#ifdef HAVE_NPROBE_OUT_EXTENSIONS
-	{ EX_NP_OUT_RETRANSMISSION,	8,	68, 0,		"nProbe Out Retransmissions"},
-	{ EX_NP_OUT_OOO,			4,	69, 0,		"nProbe Out Out of orders"},
-#endif
-	{ EX_NPROBE_RESERVED_3,		0,	0, 0,    NULL},
-	{ EX_NPROBE_RESERVED_4,		0,	0, 0,    NULL},
-	{ EX_NPROBE_RESERVED_5,		0,	0, 0,    NULL},
-	{ EX_NPROBE_RESERVED_6,		0,	0, 0,    NULL},
-	{ EX_NPROBE_RESERVED_7,		0,	0, 0,    NULL},
-	{ EX_NPROBE_RESERVED_8,		0,	0, 0,    NULL},
 
 	// last entry
 	{ 0,	0,	0, 0,	NULL }

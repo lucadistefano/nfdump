@@ -107,9 +107,7 @@ char yyerror_buff[256];
 %token NUMBER STRING IDENT PORTNUM ICMP_TYPE ICMP_CODE ENGINE_TYPE ENGINE_ID AS PACKETS BYTES FLOWS 
 %token PPS BPS BPP DURATION NOT 
 %token IPV4 IPV6 BGPNEXTHOP ROUTER VLAN
-%token CLIENT SERVER APP LATENCY 
-%token RETRANSMITTED OUTOFORDER
-%token SYSID
+%token CLIENT SERVER APP LATENCY SYSID
 %token ASA REASON DENIED XEVENT XIP XNET XPORT INGRESS EGRESS ACL ACE XACE
 %token NAT ADD EVENT VRF NPORT NIP
 %token PBLOCK START END STEP SIZE
@@ -506,63 +504,6 @@ term:	ANY { /* this is an unconditionally true expression, as a filter applies i
 		$$.self = NewBlock(OffsetAppLatency, MaskLatency, $4, $3.comp, FUNC_NONE, NULL); 
 	}
 
-	
-	
-	| dqual RETRANSMITTED BYTES comp NUMBER {	
-
-		switch ( $1.direction ) {
-			case DIR_UNSPEC:
-			case DIR_IN: 
-				$$.self = NewBlock(OffsetBytesInRetransmission, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
-				break;
-#ifdef HAVE_NPROBE_OUT_EXTENSIONS				
-			case DIR_OUT: 
-				$$.self = NewBlock(OffsetBytesOutRetransmission, MaskOutRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
-				break;
-#endif				
-			default:
-				yyerror("This token is not expected here!");
-				YYABORT;
-		} // End of switch
-
-	}
-
-	| dqual RETRANSMITTED PACKETS comp NUMBER {	
-
-		switch ( $1.direction ) {
-			case DIR_UNSPEC:
-			case DIR_IN: 
-				$$.self = NewBlock(OffsetPacketsInRetransmission, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
-				break;
-#ifdef HAVE_NPROBE_OUT_EXTENSIONS				
-			case DIR_OUT: 
-				$$.self = NewBlock(OffsetPacketsOutRetransmission, MaskOutRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
-				break;
-#endif
-			default:
-				yyerror("This token is not expected here!");
-				YYABORT;
-		} // End of switch
-
-	}
-
-	| dqual OUTOFORDER PACKETS comp NUMBER {
-		switch ( $1.direction ) {
-			case DIR_UNSPEC:
-			case DIR_IN: 
-				$$.self = NewBlock(OffsetPacketsInOOO, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
-				break;
-#ifdef HAVE_NPROBE_OUT_EXTENSIONS
-			case DIR_OUT: 
-				$$.self = NewBlock(OffsetPacketsOutOOO, MaskRetransmission, $5, $4.comp, FUNC_NONE, NULL); 
-				break;
-#endif
-			default:
-				yyerror("This token is not expected here!");
-				YYABORT;
-		} // End of switch
-	}
-	
 	| SYSID NUMBER { 	
 		if ( $2 > 255 ) {
 			yyerror("Router SysID expected between be 1..255");

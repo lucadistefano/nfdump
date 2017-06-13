@@ -348,7 +348,6 @@ static struct v9_element_map_s {
 	{ NF_F_XLATE_PORT_BLOCK_STEP, 	"NAT port step size",	_2bytes, _2bytes, move16, 	zero16, EX_PORT_BLOCK_ALLOC },
 	{ NF_F_XLATE_PORT_BLOCK_SIZE, 	"NAT port block size",	_2bytes, _2bytes, move16, 	zero16, EX_PORT_BLOCK_ALLOC },
 
-#ifdef DEPRECATED_NPROBE_LATENCY
 	// nprobe latency extension
 	{ NF9_NPROBE_CLIENT_NW_DELAY_USEC, 	 "NPROBE client lat usec",	_4bytes, _8bytes, move_ulatency, zero64, EX_LATENCY },
 	{ NF9_NPROBE_SERVER_NW_DELAY_USEC, 	 "NPROBE server lat usec",	_4bytes, _8bytes, move_ulatency, zero64, EX_LATENCY },
@@ -356,42 +355,9 @@ static struct v9_element_map_s {
 	{ NF9_NPROBE_CLIENT_NW_DELAY_SEC, 	 "NPROBE client lat sec",	_4bytes, _8bytes, move_slatency, nop, EX_LATENCY },
 	{ NF9_NPROBE_SERVER_NW_DELAY_SEC, 	 "NPROBE server lat sec",	_4bytes, _8bytes, move_slatency, nop, EX_LATENCY },
 	{ NF9_NPROBE_APPL_LATENCY_SEC, 	 	 "NPROBE appl lat sec",		_4bytes, _8bytes, move_slatency, nop, EX_LATENCY },
-#endif
 
 #ifdef HAVE_NPROBE_EXTENSIONS
-	{ NF9_NPROBE_CLIENT_NW_LATENCY_MS,		"NPROBE client lat msec",			_4bytes, _4bytes, move32, zero32, EX_NP_LATENCY },
-	{ NF9_NPROBE_SERVER_NW_LATENCY_MS,		"NPROBE server lat msec",			_4bytes, _4bytes, move32, zero32, EX_NP_LATENCY },
-	{ NF9_NPROBE_APPL_LATENCY_MS,			"NPROBE appl lat msec",				_4bytes, _4bytes, move32, zero32, EX_NP_LATENCY },
-
 	{ NF9_NPROBE_L7_PROTO,					"NPROBE l7 proto id",				_2bytes, _4bytes, move16, zero32, EX_NP_L7_PROTO },
-
-	//TODO use 32bits instead of 64??
-	//TODO sampling??
-	{ NF9_NPROBE_RETRANSMITTED_IN_BYTES,	"NPROBE retransmitted bytes in",	_4bytes,  _8bytes, move32, zero64, EX_NP_RETRANSMISSION },
-	{ NF9_NPROBE_RETRANSMITTED_IN_PKTS,		"NPROBE retransmitted packets in",	_4bytes,  _8bytes, move32, zero64, EX_NP_RETRANSMISSION },
-	{ NF9_NPROBE_OOORDER_IN_PKTS,			"NPROBE out of order in pkts",		_4bytes,  _8bytes, move32, zero64, EX_NP_RETRANSMISSION },
-
-//	{ NF9_NPROBE_RETRANSMITTED_IN_BYTES,	"NPROBE retransmitted bytes in",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
-//	{ NF9_NPROBE_RETRANSMITTED_IN_PKTS,		"NPROBE retransmitted packets in",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
-//	{ NF9_NPROBE_OOORDER_IN_PKTS,			"NPROBE out of order in pkts",		_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
-
-	{ NF9_NPROBE_WIN_ZERO,					"NPROBE zero window pkts",			_4bytes,  _8bytes, move32, zero64, EX_NP_CONGESTION },
-	{ NF9_NPROBE_CONGESTION_EXPERIENCED,	"NPROBE congested pkts",			_4bytes,  _8bytes, move32, zero64, EX_NP_CONGESTION },
-
-	{ NF9_NPROBE_ROUNDTRIP_MS,				"NPROBE roundtrip msec",			_4bytes,  _4bytes, move32, zero32, EX_NP_CONGESTION },
-	{ NF9_NPROBE_CLIENT_STALLED_TIME,		"NPROBE client stalled msec",		_4bytes,  _4bytes, move32, zero32, EX_NP_CONGESTION },
-	{ NF9_NPROBE_SERVER_STALLED_TIME,		"NPROBE server stalled msec",		_4bytes,  _4bytes, move32, zero32, EX_NP_CONGESTION },
-
-#ifdef 	HAVE_NPROBE_OUT_EXTENSIONS
-	{ NF9_NPROBE_RETRANSMITTED_OUT_BYTES,	"NPROBE retransmitted bytes out",	_4bytes,  _8bytes, move32, zero64, EX_NP_RETRANSMISSION },
-	{ NF9_NPROBE_RETRANSMITTED_OUT_PKTS,	"NPROBE retransmitted packets out",	_4bytes,  _8bytes, move32, zero64, EX_NP_RETRANSMISSION },
-	{ NF9_NPROBE_OOORDER_OUT_PKTS,			"NPROBE out of order out pkts",		_4bytes,  _8bytes, move32, zero64, EX_NP_RETRANSMISSION },
-
-//	{ NF9_NPROBE_RETRANSMITTED_OUT_BYTES,	"NPROBE retransmitted bytes out",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
-//	{ NF9_NPROBE_RETRANSMITTED_OUT_PKTS,	"NPROBE retransmitted packets out",	_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
-//	{ NF9_NPROBE_OOORDER_OUT_PKTS,			"NPROBE out of order out pkts",		_4bytes,  _8bytes, move32_sampling, zero64, EX_NP_RETRANSMISSION },
-#endif
-
 #endif
 
 	{0, "NULL",	0, 0}
@@ -977,7 +943,6 @@ size_t				size_required;
 				dbg_printf("Received offset: %u\n", offset);
 				offset				   += 8;
 				break;
-#ifdef DEPRECATED_NPROBE_LATENCY
 			case EX_LATENCY: {
 				// it's bit of a hack, but .. sigh ..
 				uint32_t i = table->number_of_sequences;
@@ -1017,29 +982,7 @@ size_t				size_required;
 				PushSequence( table, NF9_NPROBE_APPL_LATENCY_USEC, &offset, NULL, 0);
 
 				} break;
-#endif
 #ifdef HAVE_NPROBE_EXTENSIONS
-			case EX_NP_LATENCY: {
-				PushSequence( table, NF9_NPROBE_CLIENT_NW_LATENCY_MS, &offset, NULL, 0);
-				PushSequence( table, NF9_NPROBE_SERVER_NW_LATENCY_MS, &offset, NULL, 0);
-				PushSequence( table, NF9_NPROBE_APPL_LATENCY_MS, &offset, NULL, 0);
-				} break;
-			case EX_NP_RETRANSMISSION: {
-				PushSequence( table, NF9_NPROBE_RETRANSMITTED_IN_BYTES, &offset, NULL, 0);
-				PushSequence( table, NF9_NPROBE_RETRANSMITTED_OUT_BYTES, &offset, NULL, 0);
-				PushSequence( table, NF9_NPROBE_RETRANSMITTED_IN_PKTS, &offset, NULL, 0);
-				PushSequence( table, NF9_NPROBE_RETRANSMITTED_OUT_PKTS, &offset, NULL, 0);
-
-				PushSequence( table, NF9_NPROBE_OOORDER_IN_PKTS, &offset, NULL, 0);
-				PushSequence( table, NF9_NPROBE_OOORDER_OUT_PKTS, &offset, NULL, 0);
-			} break;
-			case EX_NP_CONGESTION: {
-				PushSequence( table, NF9_NPROBE_ROUNDTRIP_MS, &offset, NULL, 0);
-				PushSequence( table, NF9_NPROBE_CLIENT_STALLED_TIME, &offset, NULL, 0);
-				PushSequence( table, NF9_NPROBE_SERVER_STALLED_TIME, &offset, NULL, 0);
-				PushSequence( table, NF9_NPROBE_WIN_ZERO, &offset, NULL, 0);
-				PushSequence( table, NF9_NPROBE_CONGESTION_EXPERIENCED, &offset, NULL, 0);
-			} break;
 			case EX_NP_L7_PROTO: {
 				PushSequence( table, NF9_NPROBE_L7_PROTO, &offset, NULL, 0);
 			} break;

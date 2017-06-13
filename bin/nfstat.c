@@ -279,6 +279,18 @@ struct StatParameter_s {
 		{ {0, OffsetMPLS910, MaskMPLSlabelEven, 0}, {0,0,0,0} },
 			1, IS_MPLS_LBL },
 
+	{ "cl",	 "Client Latency", 
+		{ {0, OffsetClientLatency, MaskLatency, 0}, {0,0,0,0} },
+			1, IS_LATENCY },
+
+	{ "sl",	 "Server Latency", 
+		{ {0, OffsetServerLatency, MaskLatency, 0}, {0,0,0,0} },
+			1, IS_LATENCY },
+
+	{ "al",	 "  Appl Latency", 
+		{ {0, OffsetAppLatency, MaskLatency, 0}, {0,0,0,0} },
+			1, IS_LATENCY },
+			
 	{ "l7p",	 "L7 Proto",
 		{ {0, OffsetL7Proto, MaskL7Proto, 0}, {0,0,0,0} },
 			1, IS_NUMBER },

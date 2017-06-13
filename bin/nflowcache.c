@@ -158,9 +158,6 @@ static struct aggregate_info_s {
 #ifdef HAVE_NPROBE_EXTENSIONS
 	{ "l7proto",	{ 4, OffsetL7Proto, 	MaskL7Proto, ShiftL7Proto },    -1, 0,	"%l7p" },
 #endif
-	{ "ts",			{ 4, OffsetFirst, 		MaskFirst, ShiftFirst },    	-1, 0,	"%ts" },
-	{ "te",			{ 4, OffsetLast, 		MaskLast, ShiftLast },    		-1, 0,	"%te" },
-
 	{ NULL,			{ 0, 0, 0, 0}, 0, 0, NULL}
 };
 

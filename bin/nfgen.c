@@ -285,26 +285,9 @@ nffile_t			*nffile;
 	record.mpls_label[7] = 8080 << 4;
 	record.mpls_label[8] = 9090 << 4;
 	record.mpls_label[9] = (100100 << 4) + 1;
-#ifdef DEPRECATED_NPROBE_LATENCY
 	record.client_nw_delay_usec = 2;
 	record.server_nw_delay_usec = 22;
 	record.appl_latency_usec = 222;
-#endif
-#ifdef HAVE_NPROBE_EXTENSIONS
-	record.client_nw_delay_msec = 2;
-	record.server_nw_delay_msec = 22;
-	record.appl_latency_msec = 222;
-
-	record.in_retransmission_bytes = 11;
-	record.in_retransmission_pkts = 22;
-	record.in_ooo_pkts = 33;
-#ifdef 	HAVE_NPROBE_OUT_EXTENSIONS
-	record.out_retransmission_bytes = 12;
-	record.out_retransmission_pkts = 23;
-	record.out_ooo_pkts = 34;
-#endif
-#endif
-
 	record.bgpNextAdjacentAS = 45804;
 	record.bgpPrevAdjacentAS = 32775;
 
