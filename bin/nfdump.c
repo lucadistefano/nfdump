@@ -196,7 +196,7 @@ extern generic_exporter_t **exporter_list;
 
 #define FORMAT_nel "%ts %nevt %pr %sap -> %dap %nsap -> %ndap"
 
-#define FORMAT_nprobe "%ts %td %pr %sap -> %dap %flg %tos %pkt %byt %fl %l7p %cl %sl %al %opkt %rpkt %rbyt"
+#define FORMAT_nprobe "%ts %td %pr %sap -> %dap %flg %tos %pkt %byt %fl %l7p %cl %sl %al"
 
 #ifdef NSEL
 #	define DefaultMode "nsel"
